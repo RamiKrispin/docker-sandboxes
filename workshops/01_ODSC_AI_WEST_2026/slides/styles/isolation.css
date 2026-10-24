@@ -1,0 +1,124 @@
+/* Slides 06–09: isolation mechanisms and the deliberately mounted Docker socket. */
+.reveal .isolation-selectors{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:24px}
+.reveal .isolation-selectors button{font-size:25px;font-weight:650;padding:19px 20px;text-align:left}
+.reveal .isolation-selectors .mechanism-tag{display:block;color:var(--ink-soft);font-size:17px;font-weight:450;margin-top:8px}
+.reveal .isolation-panels{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:18px}
+.isolation-panel{border:2px solid var(--line);border-radius:18px;background:var(--bg-soft);padding:18px 15px 15px;height:249px;position:relative}
+.isolation-panel.active{border-color:var(--blue-600);background:var(--blue-50)}
+.isolation-panel .process-box{border:2px solid var(--line);border-radius:10px;background:#fff;text-align:center;font-size:22px;font-weight:600;padding:16px 5px;margin:10px 14px 0}
+.isolation-panel .process-box.restricted{border:2px dashed var(--blue-600);margin:0 8px;padding:12px 6px}
+.isolation-panel .process-box.restricted .process-box{margin:8px 5px 0;padding:11px 3px}
+.isolation-panel .boundary-name{font-size:17px;font-weight:600;color:var(--blue-700);text-align:center}
+.isolation-panel .kernel-bar{position:absolute;left:15px;right:15px;bottom:18px;border-radius:9px;background:#dbeafe;text-align:center;padding:12px 2px;font-size:21px;font-weight:600;line-height:1.2}
+.isolation-panel .kernel-bar small{display:block;font-size:16px;font-weight:450;color:var(--ink-soft);margin-top:6px}
+.isolation-panel .kernel-link{height:37px;border-left:2px solid var(--muted);width:0;margin:0 auto}
+.isolation-panel .guest-kernel{background:var(--blue-100);border-radius:6px;padding:8px 0;margin-top:9px;font-size:19px;font-weight:550;text-align:center}
+.isolation-panel .vm-box{border:2px solid var(--blue-600);border-radius:10px;margin:0 8px;padding:10px}
+.isolation-panel .vm-box .process-box{padding:9px 3px;margin:8px 0 0;font-size:21px}
+.isolation-panel .vm-platform{position:absolute;bottom:22px;left:15px;right:15px;border-top:2px solid var(--line);padding-top:9px;text-align:center;color:var(--ink-soft);font-size:18px}
+.reveal .isolation-detail{display:grid;grid-template-columns:1fr 1fr 1.18fr;gap:25px;padding:21px 25px;background:var(--bg-soft);border-radius:15px;margin-top:18px;min-height:117px}
+.reveal .isolation-detail h3{font-size:17px;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-700);font-weight:750;margin-bottom:9px}
+.reveal .isolation-detail p{font-size:23px;line-height:1.35;color:var(--ink)}
+.reveal .kernel-definition{font-size:23px;line-height:1.4;color:var(--ink-soft);margin-top:20px;max-width:1370px}
+.reveal .kernel-definition strong{color:var(--ink)}
+.reveal .mount-toggle{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:23px}
+.reveal .mount-toggle button{text-align:left;font-size:25px;font-weight:650;padding:17px 23px}
+.mount-toggle button span{font-size:20px;font-weight:450;color:var(--ink-soft);margin-left:15px}
+.reveal .mount-diagram{height:354px;margin-top:23px}
+.reveal .mount-diagram svg{width:100%;height:100%}
+.iso-svg{font-size:22px}
+.iso-svg text{font-family:Inter,sans-serif;fill:var(--ink)}
+.iso-svg .svg-cap{font-size:17px;font-weight:750;letter-spacing:.08em;fill:var(--blue-700)}
+.iso-svg .svg-title{font-size:26px;font-weight:650}
+.iso-svg .svg-small{font-size:18px;fill:var(--ink-soft)}
+.iso-svg .arrow-wire{stroke:var(--muted);stroke-width:3;fill:none;stroke-linejoin:round;stroke-linecap:round}
+.iso-svg .arrow-wire.blue{stroke:var(--blue-600)}
+.socket-added{opacity:0}
+.mount-diagram[data-mode=socket] .socket-added{opacity:1}
+.mount-diagram[data-mode=socket] .daemon-box{fill:var(--blue-50);stroke:var(--blue-600);stroke-width:3}
+.reveal .mount-detail{margin-top:15px;min-height:109px}
+.reveal .socket-stage{height:346px;margin-top:22px;background:var(--bg-soft);border:1px solid var(--line);border-radius:22px;overflow:hidden}
+.reveal .socket-stage svg{width:100%;height:100%}
+.socket-stage .mechanism-element{opacity:.2;transition:opacity .25s ease}
+.socket-stage .mechanism-element.visible{opacity:1}
+.socket-stage .mechanism-wire{stroke:var(--muted);stroke-width:4;fill:none;stroke-linejoin:round;stroke-linecap:round}
+.socket-stage .mechanism-wire.active{stroke:var(--blue-600);stroke-width:5}
+.socket-stage .step-label{font-size:18px;font-weight:600;fill:var(--ink-soft)}
+.socket-stage .illustration-label{font-size:15px;letter-spacing:.08em;font-weight:750;fill:var(--blue-700)}
+.socket-stage .socket-result{opacity:0}
+.socket-stage[data-step="5"] .socket-result{opacity:1}
+.reveal .socket-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:16px}
+.reveal .socket-steps button{font-size:21px;font-weight:600;padding:14px 12px;text-align:left;display:flex;align-items:center;gap:10px}
+.socket-steps .step-number{display:grid;place-items:center;width:29px;height:29px;border-radius:50%;background:var(--bg-soft);color:var(--ink-soft);font-size:17px;flex-shrink:0}
+.socket-steps button[aria-pressed=true] .step-number{background:var(--blue-600);color:white}
+.reveal .socket-controls{display:flex;align-items:center;gap:12px;margin-top:15px}
+.reveal .socket-controls button{padding:11px 20px;font-size:21px;min-width:118px}
+.reveal .socket-controls .primary{background:var(--blue-600);border-color:var(--blue-600);color:white}
+.reveal .socket-controls .socket-status{font-size:19px;color:var(--ink-soft);margin-left:10px}
+.reveal .socket-caption{margin-top:16px;padding:18px 23px;min-height:100px;border-left:4px solid var(--blue-600);background:var(--bg-soft);border-radius:0 12px 12px 0}
+.reveal .socket-caption h3{font-size:26px;font-weight:650;letter-spacing:-.02em;margin-bottom:8px}
+.reveal .socket-caption p{font-size:23px;line-height:1.35;color:var(--ink-soft)}
+.reveal .demo-toolbar{display:flex;align-items:center;gap:18px;margin-top:15px;margin-bottom:12px;height:46px}
+.reveal .demo-toolbar .context-label{font-size:18px;font-weight:750;letter-spacing:.11em;text-transform:uppercase;color:var(--blue-700);margin-right:auto}
+.reveal .demo-toolbar button{font-size:19px;padding:9px 17px;border-radius:10px}
+.reveal .copy-status{font-size:18px;color:var(--ink-soft);min-width:180px}
+.reveal #socket-demo pre.code-wrapper{display:block;width:100%;margin:0;box-shadow:none;text-align:left;background:var(--code-bg);border:1px solid var(--code-bg);border-radius:17px;overflow:hidden;font-size:28px;line-height:1.55}
+.reveal #socket-demo pre code{font:28px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;max-height:none;white-space:pre;padding:21px 26px;background:var(--code-bg);color:var(--code-fg);overflow:hidden}
+.reveal #socket-demo pre code table{margin:0;border-collapse:collapse;font:inherit;width:auto;text-align:left}
+.reveal #socket-demo pre code td{border:0;padding:0;text-align:left;font:inherit}
+.reveal #socket-demo pre code .hljs-ln-numbers{padding-right:27px;color:#94a3b8;user-select:none}
+.reveal #socket-demo pre code.has-highlights tr:not(.highlight-line){opacity:.65}
+.reveal #socket-demo pre code .highlight-line{background:rgba(59,130,246,.18)}
+.reveal #socket-demo pre code .highlight-line td:first-child{box-shadow:inset 3px 0 var(--teal-500)}
+.reveal .demo-mechanism{height:126px;margin-top:17px}
+.reveal .demo-mechanism svg{width:100%;height:100%}
+.demo-mechanism .demo-target{stroke:var(--line);stroke-width:2;fill:var(--bg-soft)}
+.demo-mechanism .demo-target.active{stroke:var(--blue-600);stroke-width:3;fill:var(--blue-50)}
+.demo-mechanism .demo-link{stroke:var(--muted);stroke-width:3;fill:none}
+.demo-mechanism .demo-link.active{stroke:var(--blue-600);stroke-width:4}
+.reveal .demo-caption{margin-top:12px;min-height:101px;padding:17px 23px}
+.reveal .demo-caption h3{font-size:25px}
+.reveal .demo-caption p{font-size:22px}
+.reveal .demo-foot{font-size:18px;color:var(--ink-soft);line-height:1.4;margin-top:13px}
+.reveal .demo-foot a{color:var(--blue-700);text-decoration:underline;text-underline-offset:3px}
+.reveal .demo-foot .success-criterion{font-weight:650;color:var(--ink)}
+.reveal .static-comparison,.reveal .static-mounts,.reveal .static-socket-steps,.reveal .static-code-steps{display:none}
+@media (prefers-reduced-motion:reduce){.socket-stage .mechanism-element{transition:none}}
+@media print{
+ .reveal #isolation-levels .isolation-detail{display:none!important}
+ .reveal .static-comparison{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:18px}
+ .reveal .static-comparison article,.reveal .static-mounts article{border:1px solid var(--line);border-radius:12px;background:var(--bg-soft);padding:16px 20px}
+ .reveal .static-comparison h3,.reveal .static-mounts h3{font-size:22px;font-weight:650;margin-bottom:7px}
+ .reveal .static-comparison p,.reveal .static-mounts p{font-size:19px;line-height:1.35;color:var(--ink-soft)}
+ .reveal #isolation-levels .kernel-definition{font-size:21px;margin-top:16px}
+ .reveal #isolation-levels .isolation-panels{zoom:.83;margin-left:146px}
+ .reveal #container-configuration .mount-toggle,.reveal #container-configuration .mount-detail{display:none!important}
+ .reveal #container-configuration .mount-diagram{margin-top:20px}
+ .reveal #container-configuration .socket-added{opacity:1}
+ .reveal .static-mounts{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px}
+ .reveal .static-mounts article{min-height:138px}
+ .reveal #socket-mechanism .socket-stage{zoom:.78;margin-left:202px}
+ .reveal #socket-mechanism .mechanism-element,.reveal #socket-mechanism .socket-result{opacity:1!important}
+ .reveal #socket-mechanism .socket-steps,.reveal #socket-mechanism .socket-controls,.reveal #socket-mechanism .socket-caption{display:none!important}
+ .reveal .static-socket-steps{display:grid;grid-template-columns:1fr 1fr;gap:12px 25px;list-style:none;counter-reset:socket-steps;margin:23px 0 0;padding:0}
+ .reveal .static-socket-steps li{counter-increment:socket-steps;font-size:21px;line-height:1.35;padding-left:40px;position:relative}
+ .reveal .static-socket-steps li:before{content:counter(socket-steps);position:absolute;left:0;font-size:21px;font-weight:750;color:var(--blue-700)}
+ .reveal #socket-demo .demo-toolbar button,.reveal #socket-demo .copy-status,.reveal #socket-demo .demo-mechanism,.reveal #socket-demo .demo-caption{display:none!important}
+ .reveal #socket-demo pre code:not(:first-child){display:none!important}
+ .reveal #socket-demo pre code tr{opacity:1!important;background:none!important}
+ .reveal #socket-demo pre code .highlight-line td:first-child{box-shadow:none!important}
+ .reveal .static-code-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:13px 18px;margin-top:22px}
+ .reveal .static-code-steps article{padding:15px 18px;background:var(--bg-soft);border:1px solid var(--line);border-radius:12px}
+ .reveal .static-code-steps h3{font-size:21px;font-weight:650;margin-bottom:7px}
+ .reveal .static-code-steps p{font-size:19px;line-height:1.35;color:var(--ink-soft)}
+ html.print-pdf .reveal #socket-demo pre code.fragment{display:none!important}
+ html.print-pdf .reveal #socket-demo pre.code-wrapper{margin:0!important;box-shadow:none!important;max-height:none!important}
+ html.print-pdf .reveal .static-socket-steps,html.print-pdf .reveal .static-code-steps,html.print-pdf .reveal .static-comparison,html.print-pdf .reveal .static-mounts{display:grid!important}
+}
+@media print{
+ .reveal #isolation-levels .isolation-selectors{display:none!important}
+ .reveal #isolation-levels .isolation-panels{zoom:.78;margin-left:202px}
+ .reveal #socket-demo .demo-toolbar{height:25px;margin-top:6px;margin-bottom:10px}
+ html.print-pdf .reveal #socket-demo pre code{font-size:24px!important;line-height:1.45!important;padding:16px 24px!important}
+ html.print-pdf .reveal #socket-demo pre code table{font:inherit!important}
+}

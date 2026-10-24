@@ -1,0 +1,11 @@
+{
+  "capturedAtUTC": "2026-10-16T04:16:03.565518+00:00",
+  "platform": "Docker Desktop on macOS",
+  "context": "desktop-linux",
+  "command": "docker run --rm \\\n  -v /var/run/docker.sock:/var/run/docker.sock \\\n  docker:cli \\\n  docker run --rm \\\n    -v \"$DEMO_DIR:/host-data:ro\" \\\n    alpine cat /host-data/proof.txt",
+  "stdout": "Hello from a deliberately created host test file!\n",
+  "stderr": "",
+  "exitCode": 0,
+  "durationMs": 478,
+  "fixtureSha256": "685eda3305867174670e5d5cf0e6491dee77e08eff8e94764ccfe1de1de5252b"
+}

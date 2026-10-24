@@ -1,0 +1,13 @@
+date,region,product,revenue
+2026-01-01,West,Notebook,1200
+2026-01-01,East,Notebook,900
+2026-01-01,West,Monitor,1800
+2026-01-01,East,Monitor,1500
+2026-02-01,West,Notebook,1400
+2026-02-01,East,Notebook,1100
+2026-02-01,West,Monitor,2100
+2026-02-01,East,Monitor,1700
+2026-03-01,West,Notebook,1600
+2026-03-01,East,Notebook,1300
+2026-03-01,West,Monitor,2400
+2026-03-01,East,Monitor,2000

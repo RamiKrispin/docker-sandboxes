@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Running AI Agents Safely with Docker Sandboxes — a complete 17-slide interactive workshop deck for ODSC AI West 2026.">
+  <title>Running AI Agents Safely with Docker Sandboxes · ODSC AI West 2026</title>
+  <link rel="stylesheet" href="vendor/reveal/dist/reveal.css">
+  <link rel="stylesheet" href="vendor/reveal/plugin/highlight/monokai.css">
+  <link rel="stylesheet" href="styles/theme.css">
+  <link rel="stylesheet" href="styles/comic.css">
+  <link rel="stylesheet" href="styles/isolation.css">
+  <link rel="stylesheet" href="styles/sandbox.css">
+  <link rel="stylesheet" href="styles/finishing.css">
+</head>
+<body>
+<!-- Shared, editable vector artwork. These symbols are reused across the story. -->
+<svg class="symbol-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <defs>
+    <linearGradient id="box-gradient" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#dbeafe"/><stop offset="1" stop-color="#eff6ff"/></linearGradient>
+    <linearGradient id="robot-gradient" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#2563eb"/></linearGradient>
+    <symbol id="robot" viewBox="0 0 240 270">
+      <g stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M120 39V19" fill="none"/><circle cx="120" cy="12" r="9" fill="#0ea5e9"/>
+        <path d="M46 77H31v42h15m148-42h15v42h-15" fill="#dbeafe"/>
+        <rect x="43" y="39" width="154" height="116" rx="29" fill="url(#robot-gradient)"/>
+        <rect x="60" y="57" width="120" height="73" rx="21" fill="#eff6ff"/>
+        <ellipse cx="91" cy="90" rx="9" ry="13" fill="#0f172a"/><ellipse cx="149" cy="90" rx="9" ry="13" fill="#0f172a"/>
+        <path d="M108 110q12 10 24 0" fill="none"/>
+        <path d="M91 154v13m58-13v13" fill="none"/>
+        <rect x="70" y="166" width="100" height="73" rx="20" fill="#dbeafe"/>
+        <rect x="88" y="182" width="64" height="33" rx="8" fill="#fff"/>
+        <path d="m102 193 8 6-8 6m18 0h16" stroke="#2563eb" fill="none"/>
+        <path d="M70 185 45 197l-14-12m139 0 24 12 14-12" fill="none"/>
+        <circle cx="26" cy="180" r="10" fill="#3b82f6"/><circle cx="213" cy="180" r="10" fill="#3b82f6"/>
+        <path d="M93 239v17H76m71-17v17h17" fill="none"/>
+        <path d="M72 258h28m40 0h28" stroke-width="8"/>
+      </g>
+    </symbol>
+    <symbol id="icon-terminal" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><rect x="5" y="10" width="54" height="44" rx="8"/><path d="m16 24 9 8-9 8m19 0h12"/></g></symbol>
+    <symbol id="icon-folder" viewBox="0 0 64 64"><path d="M6 20v-6a4 4 0 0 1 4-4h15l6 8h23a4 4 0 0 1 4 4v27a5 5 0 0 1-5 5H11a5 5 0 0 1-5-5V20Zm0 6h52" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/></symbol>
+    <symbol id="icon-package" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"><path d="m32 5 25 13v28L32 59 7 46V18L32 5Zm0 27 25-14M32 32 7 18m25 14v27M20 11l25 14v12"/></g></symbol>
+    <symbol id="icon-engine" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><rect x="8" y="9" width="48" height="46" rx="8"/><path d="M8 25h48M20 36v9m12-9v9m12-9v9"/><circle cx="19" cy="17" r="1.5"/><circle cx="26" cy="17" r="1.5"/></g></symbol>
+    <symbol id="icon-home" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="m5 29 27-22 27 22M12 25v31h40V25M26 56V37h12v19"/></g></symbol>
+    <symbol id="icon-network" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"><circle cx="32" cy="32" r="25"/><ellipse cx="32" cy="32" rx="12" ry="25"/><path d="M7 32h50M13 17h38M13 47h38"/></g></symbol>
+    <symbol id="icon-key" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><circle cx="20" cy="23" r="13"/><path d="m30 31 25 25m-8-8 7-7m-15-1 7-7"/><circle cx="17" cy="20" r="3"/></g></symbol>
+    <symbol id="engineer-small" viewBox="0 0 250 160"><g stroke="#0f172a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M83 147q0-48 42-48t42 48" fill="#dbeafe"/><path d="M110 91v18q15 13 30 0V91" fill="#fffbeb"/><ellipse cx="125" cy="59" rx="35" ry="40" fill="#fffbeb"/><path d="M91 54q-7-42 30-44 40-4 40 43l-22-25q-19 22-48 26Z" fill="#0f172a"/><path d="M110 61h6m20 0h6m-26 20q10 7 19 0" fill="none"/><path d="M25 147h200"/><rect x="30" y="100" width="54" height="40" rx="5" fill="#eff6ff"/></g></symbol>
+  </defs>
+</svg>
+<div class="reveal">
+<main class="slides">
+  <section id="welcome" aria-labelledby="title-heading">
+    <div class="wrap">
+      <p class="eyebrow">ODSC AI West 2026</p>
+      <div class="title-layout">
+        <div class="title-copy">
+          <h1 class="title" id="title-heading">Running AI<br>Agents Safely<br><span class="accent">with Docker<br>Sandboxes</span></h1>
+          <p class="title-subtitle">Secure Autonomy with Micro VMs</p>
+          <p class="title-person"><strong>Rami Krispin</strong></p>
+        </div>
+        <svg class="title-art" viewBox="0 0 650 640" role="img" aria-labelledby="title-art-name title-art-desc">
+          <title id="title-art-name">A curious robot inside a deliberate boundary</title>
+          <desc id="title-art-desc">The same small blue robot used throughout the workshop peeks out of a blue sandbox.</desc>
+          <ellipse cx="340" cy="555" rx="220" ry="25" fill="#f1f5f9"/>
+          <rect x="107" y="66" width="455" height="463" rx="55" fill="#eff6ff"/>
+          <path d="M67 178v-38q0-24 24-24h37m410 0h38q24 0 24 24v38M67 434v38q0 24 24 24h37m410 0h38q24 0 24-24v-38" stroke="#dbeafe" stroke-width="3" fill="none"/>
+          <g opacity=".7"><path d="M500 66v30m-15-15h30M84 318v20m-10-10h20" stroke="#0ea5e9" stroke-width="3" stroke-linecap="round"/><circle cx="563" cy="365" r="6" fill="#3b82f6"/></g>
+          <path d="m162 318 177-70 182 70-182 76Z" fill="#dbeafe" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round"/>
+          <use href="#robot" x="198" y="103" width="285" height="321"/>
+          <path d="m162 318 177 76v162l-177-79Z" fill="#dbeafe" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round"/>
+          <path d="m339 394 182-76v159l-182 79Z" fill="url(#box-gradient)" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round"/>
+          <path d="m162 318-44 57 176 77 45-58m182-76 44 57-182 77-44-58" fill="#eff6ff" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round"/>
+          <path d="m395 478 66-28" stroke="#2563eb" stroke-width="6" stroke-linecap="round"/>
+          <path d="m395 497 44-19" stroke="#0ea5e9" stroke-width="6" stroke-linecap="round"/>
+          <text x="339" y="611" text-anchor="middle" font-family="Inter,sans-serif" font-size="21" font-weight="600" fill="#475569">Useful autonomy. Deliberate boundaries.</text>
+        </svg>
+      </div>
+      <p class="print-only print-citation">Source: workshop development plan, workshop overview and slide 01.</p>
+    </div>
+    <aside class="notes">
+      <h3>Objective · 00:00–00:30</h3>
+      <p>Set the promise: useful autonomous work within a controlled execution environment. Open with why agents need a boundary, then run an agent and inspect what it can reach later in the workshop. The final ten minutes, 50:00–60:00, are reserved for Q&amp;A.</p>
+      <p>Interaction: none. The title art is already a complete static composition and introduces the recurring robot.</p>
+      <p>Bridge: What changes when software can act on our computer?</p>
+      <p>Source: workshop development plan, sections 1–2; deck plan, slide 01.</p>
+    </aside>
+  </section>
+
+  <section id="agents-act" aria-labelledby="actions-heading">
+    <div class="wrap">
+      <p class="eyebrow">Why agents need sandboxes</p>
+      <h2 id="actions-heading">AI agents can act on our computers.</h2>
+      <p class="lead">An agent uses tools to act toward a goal. Each action reaches a resource.</p>
+      <div class="action-map" role="group" aria-label="Explore agent actions and their resources">
+        <svg class="action-wires" viewBox="0 0 1432 440" aria-hidden="true">
+          <path class="wire active" data-wire="commands" d="M405 107H500Q530 107 552 151"/>
+          <path class="wire" data-wire="files" d="M1027 107H932Q902 107 880 151"/>
+          <path class="wire" data-wire="packages" d="M405 312H500Q530 312 552 250"/>
+          <path class="wire" data-wire="builds" d="M1027 312H932Q902 312 880 250"/>
+        </svg>
+        <div class="action-core" aria-hidden="true"><svg viewBox="0 0 240 270"><use href="#robot"/></svg><p class="agent-title">Agent + tools</p><p class="agent-caption">From an answer to an action</p></div>
+        <button type="button" class="action-card" data-action="commands" aria-pressed="true" aria-controls="action-detail"><span class="selection-mark"></span><svg class="action-icon" aria-hidden="true"><use href="#icon-terminal"/></svg><span><span class="action-title">Run commands</span><span class="resource-label">Shell &amp; local processes</span></span></button>
+        <button type="button" class="action-card" data-action="files" aria-pressed="false" aria-controls="action-detail"><span class="selection-mark"></span><svg class="action-icon" aria-hidden="true"><use href="#icon-folder"/></svg><span><span class="action-title">Edit project files</span><span class="resource-label">Workspace files</span></span></button>
+        <button type="button" class="action-card" data-action="packages" aria-pressed="false" aria-controls="action-detail"><span class="selection-mark"></span><svg class="action-icon" aria-hidden="true"><use href="#icon-package"/></svg><span><span class="action-title">Install packages</span><span class="resource-label">Package sources &amp; environment</span></span></button>
+        <button type="button" class="action-card" data-action="builds" aria-pressed="false" aria-controls="action-detail"><span class="selection-mark"></span><svg class="action-icon" aria-hidden="true"><use href="#icon-engine"/></svg><span><span class="action-title">Build images</span><span class="resource-label">Docker engine</span></span></button>
+      </div>
+      <div class="print-only static-explanations action-explanations" aria-label="All action examples">
+        <article><h3>Run commands → shell &amp; processes</h3><p>Run the project's tests. The process runs with the access its environment gives it.</p></article>
+        <article><h3>Edit files → workspace</h3><p>Update the dashboard source. The agent reads and writes the workspace files its tools can reach.</p></article>
+        <article><h3>Install packages → sources &amp; environment</h3><p>Fetch a dependency. The agent reaches a package source and changes its software environment.</p></article>
+        <article><h3>Build images → Docker engine</h3><p>Build an application image. The Docker client asks an engine to perform the build. Which engine matters.</p></article>
+      </div>
+      <div class="interaction-detail" id="action-detail" aria-live="polite" aria-atomic="true"><span class="detail-number" aria-hidden="true">01</span><div><h3>Run the project's tests.</h3><p>The agent starts a process. That process runs with the access its environment gives it.</p></div></div>
+      <p class="print-only print-citation">Sources: workshop development plan, slide 02; Docker isolation layers — docs.docker.com/ai/sandboxes/security/isolation/</p>
+    </div>
+    <aside class="notes">
+      <h3>Objective · 00:30–02:30</h3>
+      <p>Distinguish an answer from a tool action. Define an agent as software that uses tools to act toward a goal. The four resource labels are visible immediately.</p>
+      <p>Interaction: select each action to emphasize the affected resource and example. Buttons work with Tab and Enter/Space; focused controls do not advance the presentation. Ask attendees which action they would want reviewed. The static diagram retains all four action/resource pairs.</p>
+      <p>Bridge: Useful actions need access. We need to decide how much.</p>
+      <p>Sources: workshop development plan, slide 2; Docker, “Isolation layers”: https://docs.docker.com/ai/sandboxes/security/isolation/</p>
+    </aside>
+  </section>
+
+  <section id="access" aria-labelledby="access-heading">
+    <div class="wrap">
+      <p class="eyebrow">Capability → access</p>
+      <h2 id="access-heading">Autonomy expands access.</h2>
+      <p class="lead">Choose a task. Consider which resources its tools may need.</p>
+      <div class="scenario-tabs" role="group" aria-label="Illustrative task scenarios">
+        <button type="button" data-scenario="suggest" aria-pressed="true" aria-controls="scenario-detail"><span class="scenario-number">1</span>Suggest code</button>
+        <button type="button" data-scenario="edit" aria-pressed="false" aria-controls="scenario-detail"><span class="scenario-number">2</span>Edit a project</button>
+        <button type="button" data-scenario="build" aria-pressed="false" aria-controls="scenario-detail"><span class="scenario-number">3</span>Run builds &amp; tools</button>
+      </div>
+      <div class="access-map">
+        <svg class="keys-robot" viewBox="0 0 290 340" role="img" aria-label="The blue robot considers an oversized set of keys beside the host resources">
+          <use href="#robot" x="10" y="34" width="230" height="259"/>
+          <g transform="translate(187 154) rotate(-24)" fill="#fffbeb" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round"><circle cx="13" cy="10" r="21" fill="none"/><path d="M13 30v72h21V87H24V73h10V59H24V30Z"/><path d="m29 28 27 64 18-7-6-14-8 4-5-12 9-4-6-13-9 4-12-27Z" fill="#dbeafe"/></g>
+        </svg>
+        <div class="host-resources"><div class="host-label">Host resources</div><div class="resource-grid">
+          <div class="resource-node" data-resource="project"><svg aria-hidden="true"><use href="#icon-folder"/></svg><span class="resource-name">Project files</span><span class="resource-status">Not needed here</span></div>
+          <div class="resource-node" data-resource="home"><svg aria-hidden="true"><use href="#icon-home"/></svg><span class="resource-name">Home directory</span><span class="resource-status">Not needed here</span></div>
+          <div class="resource-node" data-resource="network"><svg aria-hidden="true"><use href="#icon-network"/></svg><span class="resource-name">Network</span><span class="resource-status">Not needed here</span></div>
+          <div class="resource-node" data-resource="docker"><svg aria-hidden="true"><use href="#icon-engine"/></svg><span class="resource-name">Docker daemon</span><span class="resource-status">Not needed here</span></div>
+        </div></div>
+      </div>
+      <div class="interaction-detail scenario-explainer" id="scenario-detail" aria-live="polite" aria-atomic="true"><span class="detail-number" aria-hidden="true">01</span><div><h3>Propose a change from supplied context.</h3><p>We can ask for a suggestion without granting local tool access.</p></div></div>
+      <p class="scenario-fine">Illustrative task needs, not a permission setting or risk score. Model-provider access is omitted.</p>
+      <div class="print-only fine">Scenario comparison: suggest code → supplied context; edit a project → project files; run a container build that fetches dependencies → project files, package network access and a Docker daemon. The home directory is not needed for these examples.</div>
+      <p class="print-only print-citation">Sources: deck plan, slide 03; Docker isolation layers — docs.docker.com/ai/sandboxes/security/isolation/</p>
+    </div>
+    <aside class="notes">
+      <h3>Objective · 02:30–04:30</h3>
+      <p>Connect capabilities to deliberate resource choices. This is an illustration of selected task requirements, not a permission configuration, a security ranking, or a claim that all tools always need network access.</p>
+      <p>Interaction: select the three scenarios. Suggest code uses supplied context and needs no local tools. Edit a project emphasizes project files. The build example assumes fetching dependencies and building a container, so it emphasizes project files, network and Docker daemon. Model-provider access is outside this diagram. Broad access to the home directory is not required by these tasks.</p>
+      <p>Static fallback: all resources remain labeled; the printed slide also includes the three-scenario comparison. The key ring signals access decisions; it is not a literal security mechanism.</p>
+      <p>Bridge: Reviewing every individual action also has a cost.</p>
+      <p>Sources: deck plan, slide 03; Docker, “Isolation layers”: https://docs.docker.com/ai/sandboxes/security/isolation/</p>
+    </aside>
+  </section>
+
+  <section id="approval-fatigue" aria-labelledby="approval-heading">
+    <div class="wrap">
+      <p class="eyebrow">The human in the loop</p>
+      <h2 id="approval-heading">Approval, approval, approval…</h2>
+      <p class="lead">Repeated prompts can turn review into a reflex.</p>
+      <div class="comic-stage" data-stage="0" data-running="false" role="img" aria-label="Approval fatigue comic. An engineer initially reviews a test request; then installs, edits and commands accumulate until approval becomes automatic.">
+        <svg viewBox="0 0 1432 457" aria-hidden="true">
+          <path d="M66 402h1302" stroke="#e2e8f0" stroke-width="3"/>
+          <g transform="translate(30 147)"><use href="#robot" width="190" height="214"/></g>
+          <text x="57" y="395" class="comic-label" fill="#475569">AGENT + TOOLS</text>
+          <path d="M209 243q55-36 110-16" stroke="#94a3b8" stroke-width="2" stroke-dasharray="7 7" fill="none"/>
+          <!-- Clock -->
+          <circle cx="738" cy="73" r="34" fill="white" stroke="#0f172a" stroke-width="3"/>
+          <path d="M738 45v7m0 42v7m-28-28h7m42 0h7" stroke="#94a3b8" stroke-width="2"/>
+          <path class="clock-hand" d="M738 73V52m0 21 16 9" fill="none" stroke="#0f172a" stroke-width="3" stroke-linecap="round"/>
+          <!-- Recurring engineer -->
+          <g class="engineer-posture" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+            <path d="M554 292q-41 6-42 82v36h131v-37" fill="#dbeafe"/>
+            <path d="M557 274q12-51 63-51 60 0 75 55l22 83H548Z" fill="#dbeafe"/>
+            <path d="M600 208v29q21 16 42-1v-29" fill="#fffbeb"/>
+            <ellipse cx="621" cy="168" rx="51" ry="61" fill="#fffbeb"/>
+            <path d="M570 165q-12-69 38-76 60-10 68 68l-26-38q-29 26-80 46Z" fill="#0f172a"/>
+            <path d="M651 197q-13 15-29 6" fill="none"/>
+            <g class="alert-eyes"><path d="M590 162q8-6 15 0m26 0q8-6 15 0" fill="none"/><circle cx="599" cy="172" r="3" fill="#0f172a"/><circle cx="639" cy="172" r="3" fill="#0f172a"/></g>
+            <g class="tired-eyes" fill="none"><path d="m588 170 18 5m22-5 19 5m-56 9h12m29 0h12"/></g>
+            <g class="spiral-eyes" fill="none" stroke-width="2.4"><path d="M602 174q-13 11-18-2-4-16 11-17 19 0 16 17-3 22-22 15m54-13q-13 11-18-2-4-16 11-17 19 0 16 17-3 22-22 15"/></g>
+            <path d="m567 288-34 62-66 2m198-60 38 52 83-4" fill="#fffbeb"/>
+          </g>
+          <!-- Desktop, monitor and hands -->
+          <path d="M338 374h642m-611 0v47m585-47v47" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>
+          <g stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round"><path d="m364 267 100 5 21 85H381Z" fill="#eff6ff"/><path d="M381 357h136v12H381Z" fill="#dbeafe"/><circle cx="425" cy="315" r="6" fill="#0ea5e9"/></g>
+          <text x="347" y="80" class="comic-label thoughtful-label" fill="#475569">READ. CONSIDER. APPROVE.</text>
+          <!-- Coffee accumulates -->
+          <g class="cup first" transform="translate(727 330)" stroke="#0f172a" stroke-width="3" fill="#fff"><path d="M0 0h31v34H0Zm31 5h7q13 11 0 21h-7"/><path d="M7-10q-6-7 0-14m13 14q-6-7 0-14" fill="none" stroke="#94a3b8" stroke-width="2"/></g>
+          <g class="cup second" transform="translate(778 331)" stroke="#0f172a" stroke-width="3" fill="#dbeafe"><path d="M0 0h31v34H0Zm31 5h7q13 11 0 21h-7"/></g>
+          <g class="cup third" transform="translate(828 330)" stroke="#0f172a" stroke-width="3" fill="#fffbeb"><path d="M0 0h31v34H0Zm31 5h7q13 11 0 21h-7"/><path d="M5-4h25l-4-30H9Z"/></g>
+          <!-- Growing prompt queue -->
+          <g class="prompt-stack second"><rect x="972" y="71" width="363" height="164" rx="16" fill="#dbeafe" stroke="#94a3b8" stroke-width="2"/><text x="1000" y="106" font-size="21">Modify file? · Run command?</text></g>
+          <g class="prompt-stack first"><rect x="949" y="102" width="363" height="164" rx="16" fill="#eff6ff" stroke="#94a3b8" stroke-width="2"/><text x="976" y="138" font-size="21">Install package?</text></g>
+          <g><rect x="922" y="139" width="363" height="164" rx="16" fill="#fff" stroke="#0f172a" stroke-width="3"/><text x="948" y="184" class="prompt-main" id="comic-dialog-text">Run the project's tests?</text><rect x="1083" y="218" width="175" height="57" rx="10" fill="#2563eb"/><text x="1170" y="254" class="prompt-approve" text-anchor="middle">Approve</text></g>
+          <!-- Mechanical approval stamp -->
+          <g class="stamp" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round"><path d="M908 287v-35q0-16 19-16t19 16v35" fill="#0ea5e9"/><rect x="863" y="285" width="128" height="43" rx="8" fill="#dbeafe"/><path d="M859 328h136v19H859Z" fill="#0f172a"/><text x="927" y="314" font-size="20" font-weight="800" text-anchor="middle" stroke="none">APPROVE</text></g>
+          <g class="approval-lines" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"><path d="m849 352-15-7m13 18-17 2m174-12 16-7m-15 18 18 2"/></g>
+          <g class="stamp-print" transform="translate(1084 353) rotate(-7)"><rect x="-26" y="-24" width="229" height="62" rx="6" stroke="#1d4ed8" stroke-width="3" fill="#eff6ff"/><text x="89" y="17" text-anchor="middle" font-size="30" font-weight="800" fill="#1d4ed8">APPROVED</text></g>
+        </svg>
+      </div>
+      <div class="comic-controls" role="group" aria-label="Approval fatigue animation controls">
+        <button type="button" class="primary" id="comic-start">Start scene</button><button type="button" id="comic-pause" disabled>Pause</button><button type="button" id="comic-replay">Replay</button><span class="scene-status" id="comic-status" aria-live="polite">12-second scene · ready</span>
+      </div>
+      <p class="comic-question" id="comic-question" aria-live="polite"><span class="quiet">A thoughtful first approval. Then another request arrives.</span></p>
+      <div class="comic-summary print-only" aria-label="Static comic storyboard">
+        <article><svg aria-hidden="true" viewBox="0 0 250 160"><use href="#engineer-small"/></svg><h3>1. Thoughtful review</h3><p>The engineer reads a test request and decides to approve.</p></article>
+        <article><svg aria-hidden="true" viewBox="0 0 250 160"><use href="#engineer-small"/><g fill="#fff" stroke="#2563eb" stroke-width="2"><rect x="151" y="20" width="85" height="30" rx="6"/><rect x="163" y="59" width="73" height="30" rx="6"/><rect x="175" y="98" width="61" height="30" rx="6"/></g></svg><h3>2. Requests accumulate</h3><p>Install a package. Edit a file. Run another command.</p></article>
+        <article><svg aria-hidden="true" viewBox="0 0 250 160"><use href="#engineer-small"/><g transform="translate(120 95) rotate(-8)"><rect x="-5" y="0" width="132" height="44" rx="5" fill="#eff6ff" stroke="#1d4ed8" stroke-width="2"/><text x="60" y="29" text-anchor="middle" font-family="Inter,sans-serif" font-size="19" font-weight="800" fill="#1d4ed8">APPROVED</text></g></svg><h3>3. Approval becomes habit</h3><p>The stamp keeps moving. How much review remains?</p></article>
+      </div>
+      <p class="print-only print-citation">Source: workshop development plan, animation A. Explanatory comic; not a measured user study.</p>
+    </div>
+    <aside class="notes">
+      <h3>Objective · 04:30–07:30</h3>
+      <p>Explain approval fatigue without claiming that oversight is unnecessary. Repetitive requests can weaken thoughtful review; a deliberate execution boundary reduces reliance on repetitive approval clicks. Oversight still matters.</p>
+      <p>Interaction: choose Start scene for a 12-second sequence. Pause resumes from the same point; Replay restarts. Requests progress from tests to installation, file edits and commands. Cups accumulate, posture slumps, eyes spiral and the APPROVE stamp becomes mechanical. Animation pauses when leaving this slide. Reduced-motion preference starts at the final still; printing provides three storyboard frames.</p>
+      <p>After the freeze frame, ask for a show of hands: is the engineer still reviewing the action, or simply clearing the next dialog? Allow audience predictions before moving on. No approval action in this illustration executes a tool.</p>
+      <p>Bridge: What if we define where actions can execute before they begin?</p>
+      <p>Source: workshop development plan, animation A; deck plan, slide 04. This comic is an explanatory illustration, not a measured user study.</p>
+    </aside>
+  </section>
+
+  <section id="execution-boundary" aria-labelledby="boundary-heading">
+    <div class="wrap">
+      <p class="eyebrow">Define the boundary first</p>
+      <h2 id="boundary-heading">A sandbox defines the execution boundary.</h2>
+      <p class="lead">A controlled environment gives agent tools defined access to resources.</p>
+      <div class="boundary-layout" role="group" aria-label="Explore intentional access paths across a sandbox boundary">
+        <svg class="boundary-map" viewBox="0 0 1432 446" role="img" aria-labelledby="boundary-map-title boundary-map-desc">
+          <title id="boundary-map-title">A sandbox inside a host, with explicit resource connections</title>
+          <desc id="boundary-map-desc">The agent and its tools run inside a controlled environment. Workspace, network and credentials cross the boundary only through intentionally configured access paths.</desc>
+          <rect x="0" y="0" width="991" height="446" rx="24" fill="#f7f9fc"/>
+          <text x="28" y="43" class="svg-label" fill="#475569">Host</text>
+          <rect class="boundary-outline" x="35" y="76" width="695" height="335" rx="25"/>
+          <text x="65" y="117" class="svg-title" fill="#1d4ed8">Sandbox</text>
+          <text x="65" y="148" class="svg-small">Controlled execution environment</text>
+          <use href="#robot" x="80" y="168" width="178" height="200"/>
+          <rect x="316" y="188" width="187" height="135" rx="17" fill="#fff" stroke="#dbeafe" stroke-width="2"/>
+          <svg x="377" y="204" width="62" height="62" color="#1d4ed8" aria-hidden="true"><use href="#icon-terminal"/></svg>
+          <text x="410" y="299" text-anchor="middle" class="svg-label">Agent tools</text>
+          <path d="M256 255h60" stroke="#2563eb" stroke-width="3" fill="none"/>
+          <path class="boundary-path active" data-path="workspace" d="M503 255h87v-116h432"/>
+          <path class="boundary-path" data-path="network" d="M503 255h519"/>
+          <path class="boundary-path" data-path="credentials" d="M503 255h87v123h432"/>
+          <g class="boundary-port" fill="#fff" stroke="#2563eb" stroke-width="3"><circle cx="730" cy="139" r="10"/><circle cx="730" cy="255" r="10"/><circle cx="730" cy="378" r="10"/></g>
+          <text x="802" y="43" class="svg-small">Intentional access paths</text>
+          <text x="382" y="382" text-anchor="middle" class="svg-small">Actions run inside this boundary.</text>
+        </svg>
+        <button type="button" class="boundary-card" data-boundary="workspace" aria-pressed="true" aria-controls="boundary-detail"><svg aria-hidden="true"><use href="#icon-folder"/></svg><span><span class="path-title">Workspace</span><span class="path-sub">Which files can it reach?</span></span></button>
+        <button type="button" class="boundary-card" data-boundary="network" aria-pressed="false" aria-controls="boundary-detail"><svg aria-hidden="true"><use href="#icon-network"/></svg><span><span class="path-title">Network</span><span class="path-sub">Where can it connect?</span></span></button>
+        <button type="button" class="boundary-card" data-boundary="credentials" aria-pressed="false" aria-controls="boundary-detail"><svg aria-hidden="true"><use href="#icon-key"/></svg><span><span class="path-title">Credentials</span><span class="path-sub">Which secrets can it use?</span></span></button>
+      </div>
+      <div class="print-only static-explanations boundary-explanations" aria-label="All boundary connection explanations">
+        <article><h3>Workspace</h3><p>Share a chosen project. Mount mode and permissions define access. Shared writable files remain writable.</p></article>
+        <article><h3>Network</h3><p>Choose allowed destinations. Network access follows the environment's policy.</p></article>
+        <article><h3>Credentials</h3><p>Grant only credentials the task needs. A sandbox does not make a shared secret harmless.</p></article>
+      </div>
+      <div class="interaction-detail boundary-detail" id="boundary-detail" aria-live="polite" aria-atomic="true"><span class="detail-number" aria-hidden="true">01</span><div><h3>Share a chosen workspace.</h3><p>File access follows the workspace's mount mode and permissions. Shared writable files remain writable.</p></div></div>
+      <p class="print-only print-citation">Sources: Docker isolation layers — docs.docker.com/ai/sandboxes/security/isolation/; local access controls — docs.docker.com/ai/sandboxes/governance/access-controls/local/</p>
+    </div>
+    <aside class="notes">
+      <h3>Objective · 07:30–10:00</h3>
+      <p>Define sandboxing before comparing its implementations: a sandbox is a controlled execution environment with defined resource access. This is a conceptual boundary, not yet the Docker Sandboxes architecture or a claim about a particular kernel.</p>
+      <p>Interaction: select Workspace, Network or Credentials to follow an intentional access path. The other paths remain visible. Connections represent resources deliberately made available under controls; they do not imply access to everything outside the sandbox, and credentials are not automatically granted. Shared writable files remain writable.</p>
+      <p>Static fallback: the complete diagram stays visible with labeled connections. The initial workspace explanation is the default. End this opening topic by 10:00.</p>
+      <p>Bridge to slide 06 in the planned deck: compare direct execution, OS restrictions, containers and microVMs. </p>
+      <p>Sources: Docker, “Isolation layers”: https://docs.docker.com/ai/sandboxes/security/isolation/ ; “Local access controls”: https://docs.docker.com/ai/sandboxes/governance/access-controls/local/ ; deck plan, slide 05.</p>
+    </aside>
+  </section>
+
+  <section id="isolation-levels" aria-labelledby="isolation-heading">
+    <div class="wrap">
+      <p class="eyebrow">Ways to create a boundary</p>
+      <h2 id="isolation-heading">Isolation comes in different forms.</h2>
+      <p class="lead">Where code runs, which kernel it uses, and what we configure all matter.</p>
+      <div class="isolation-selectors" role="group" aria-label="Compare isolation mechanisms">
+        <button type="button" data-isolation="direct" aria-pressed="true" aria-controls="isolation-detail">Direct execution<span class="mechanism-tag">Existing user environment</span></button>
+        <button type="button" data-isolation="os" aria-pressed="false" aria-controls="isolation-detail">OS restrictions<span class="mechanism-tag">Policy around processes</span></button>
+        <button type="button" data-isolation="container" aria-pressed="false" aria-controls="isolation-detail">Containers<span class="mechanism-tag">Isolated process environments</span></button>
+        <button type="button" data-isolation="microvm" aria-pressed="false" aria-controls="isolation-detail">MicroVMs<span class="mechanism-tag">A separate guest kernel</span></button>
+      </div>
+      <div class="isolation-panels" aria-label="Architectures for the four mechanisms">
+        <div class="isolation-panel active" data-isolation-panel="direct"><div class="process-box">Agent tools</div><div class="kernel-link"></div><div class="kernel-bar">Host kernel<small>User permissions still apply</small></div></div>
+        <div class="isolation-panel" data-isolation-panel="os"><div class="process-box restricted"><div class="boundary-name">OS policy</div><div class="process-box">Agent tools</div></div><div class="kernel-link"></div><div class="kernel-bar">Host kernel<small>Controls vary by mechanism</small></div></div>
+        <div class="isolation-panel" data-isolation-panel="container"><div class="process-box restricted"><div class="boundary-name">Container boundary</div><div class="process-box">Agent tools</div></div><div class="kernel-link"></div><div class="kernel-bar">Linux kernel<small>Shared with other containers</small></div></div>
+        <div class="isolation-panel" data-isolation-panel="microvm"><div class="vm-box"><div class="boundary-name">VM boundary</div><div class="process-box">Agent tools</div><div class="guest-kernel">Guest kernel</div></div><div class="vm-platform">Virtualization layer</div></div>
+      </div>
+      <div class="isolation-detail" id="isolation-detail" aria-live="polite" aria-atomic="true"><div><h3>Code runs in</h3><p data-isolation-where>The existing host session</p></div><div><h3>Kernel</h3><p data-isolation-kernel>The host's kernel</p></div><div><h3>We configure</h3><p data-isolation-tradeoff>User access; little extra setup, broad integration</p></div></div>
+      <div class="static-comparison print-only" aria-label="All isolation explanations">
+        <article><h3>Direct execution</h3><p>Tools run in the existing host session, using its kernel and user access. Little extra setup; broad integration.</p></article>
+        <article><h3>OS restrictions</h3><p>Tools still use the host kernel. Configure process policies; guarantees and compatibility depend on the controls.</p></article>
+        <article><h3>Containers</h3><p>Tools use a shared Linux kernel. Configure mounts and capabilities; efficient integration needs deliberate sharing.</p></article>
+        <article><h3>MicroVMs</h3><p>Tools run in a VM with its own kernel. Configure VM resources and integrations; accept extra startup and resource cost.</p></article>
+      </div>
+      <p class="kernel-definition"><strong>Kernel:</strong> the OS component managing processes and resources.<br><strong>MicroVM:</strong> a lightweight virtual machine with its own kernel. Isolation is a design choice, not a score.</p>
+      <p class="print-only print-citation">Sources: Docker security — docs.docker.com/engine/security/; Docker isolation layers — docs.docker.com/ai/sandboxes/security/isolation/</p>
+    </div>
+    <aside class="notes">
+      <h3>Objective · 10:00–14:00</h3>
+      <p>Fulfill the boundary comparison promised by slide 05. Define kernel immediately: the OS component managing processes and resources. A microVM is a lightweight virtual machine with its own kernel.</p>
+      <p>Interaction: select each of the four mechanisms. The architecture stays in place while one explanation updates: where code runs, which kernel it uses, and what the operator configures. Direct execution still obeys user permissions. OS restrictions are a family of controls with different guarantees. Containers share their underlying Linux kernel. On macOS Docker Desktop supplies that kernel in a Linux VM, clarified next.</p>
+      <p>Compare setup, resources and integration; do not present a numerical safety ranking or imply that a stronger boundary removes access decisions. Print includes all four explanations.</p>
+      <p>Bridge: Container isolation is meaningful. Now inspect how intentional mounts affect it.</p>
+      <p>Sources: Docker security, https://docs.docker.com/engine/security/ ; Docker isolation layers, https://docs.docker.com/ai/sandboxes/security/isolation/</p>
+    </aside>
+  </section>
+
+  <section id="container-configuration" aria-labelledby="container-heading">
+    <div class="wrap">
+      <p class="eyebrow">The configuration matters</p>
+      <h2 id="container-heading">A mount changes what a container can reach.</h2>
+      <p class="lead">Containers isolate processes. We still choose the resources we share.</p>
+      <div class="mount-toggle" role="group" aria-label="Compare container mount configurations">
+        <button type="button" data-mount-mode="project" aria-pressed="true" aria-controls="mount-detail">Limited project mount<span>Chosen files</span></button>
+        <button type="button" data-mount-mode="socket" aria-pressed="false" aria-controls="mount-detail">Add the Docker socket<span>Daemon control</span></button>
+      </div>
+      <div class="mount-diagram" data-mode="project">
+        <svg class="iso-svg" viewBox="0 0 1432 354" role="img" aria-labelledby="mount-svg-title mount-svg-desc">
+          <title id="mount-svg-title">Linux containers, shared kernel and explicit mounts</title><desc id="mount-svg-desc">A chosen project mount reaches container A. Adding the Docker socket connects A's Docker client to the daemon. A macOS inset places Linux containers inside Docker Desktop's Linux VM.</desc>
+          <defs><marker id="mount-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="m0 0 10 5-10 5Z" fill="#2563eb"/></marker></defs>
+          <rect x="0" y="0" width="1010" height="354" rx="22" fill="#f7f9fc"/>
+          <text x="28" y="32" class="svg-cap">Linux execution environment</text>
+          <rect x="37" y="73" width="275" height="164" rx="17" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+          <text x="61" y="108" class="svg-title">Container A</text><svg x="64" y="137" width="55" height="55" color="#1d4ed8" aria-hidden="true"><use href="#icon-terminal"/></svg><text x="137" y="159">Agent tools</text><text x="137" y="184" class="svg-small">Docker client</text><text x="137" y="210" class="svg-small">if present</text>
+          <rect x="385" y="73" width="220" height="164" rx="17" fill="#fff" stroke="#e2e8f0" stroke-width="2"/><text x="411" y="112" class="svg-title">Container B</text><text x="411" y="160" class="svg-small">Other processes</text><text x="411" y="189" class="svg-small">Same Linux kernel</text>
+          <rect class="daemon-box" x="690" y="73" width="280" height="119" rx="16" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+          <text x="715" y="111" class="svg-title">Docker daemon</text><text x="715" y="148" class="svg-small">Starts and manages containers</text>
+          <path class="socket-added arrow-wire blue" d="M312 112h27V52h491v20" marker-end="url(#mount-arrow)"/><text class="socket-added svg-small" x="419" y="45">Socket connection</text>
+          <rect x="690" y="217" width="280" height="54" rx="12" fill="#fff" stroke="#e2e8f0" stroke-width="2"/><text x="718" y="251">Chosen project folder</text>
+          <path class="arrow-wire blue" d="M690 244h-40v-24H312" marker-end="url(#mount-arrow)"/><text x="386" y="263" class="svg-small">Deliberate project mount</text>
+          <path d="M174 237v55m321-55v55m335-21v21" stroke="#94a3b8" stroke-width="2"/>
+          <rect x="37" y="293" width="933" height="40" rx="9" fill="#dbeafe"/><text x="503" y="321" text-anchor="middle" font-size="22" font-weight="650">Shared Linux kernel</text>
+          <g transform="translate(1053 17)"><rect width="379" height="320" rx="20" fill="#fff" stroke="#e2e8f0" stroke-width="2"/><text x="24" y="35" class="svg-cap">On macOS</text><rect x="25" y="57" width="329" height="221" rx="14" fill="#f7f9fc" stroke="#e2e8f0" stroke-width="2"/><text x="44" y="87" font-size="23" font-weight="600">macOS host</text><rect x="45" y="108" width="289" height="147" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/><text x="63" y="133" font-size="22" font-weight="650">Docker Desktop</text><text x="63" y="158" font-size="22" font-weight="650">Linux VM</text><rect x="65" y="170" width="249" height="37" rx="8" fill="#fff" stroke="#dbeafe" stroke-width="2"/><text x="189" y="195" text-anchor="middle" font-size="20">Linux containers</text><rect x="65" y="208" width="249" height="29" rx="6" fill="#dbeafe"/><text x="189" y="229" text-anchor="middle" font-size="18">VM's Linux kernel</text><text x="24" y="303" class="svg-small">Containers share this Linux kernel.</text></g>
+        </svg>
+      </div>
+      <div class="interaction-detail mount-detail" id="mount-detail" aria-live="polite" aria-atomic="true"><span class="detail-number" aria-hidden="true">01</span><div><h3>Share the files the task needs.</h3><p>A chosen project mount grants file access. It does not, by itself, grant control of the Docker daemon.</p></div></div>
+      <div class="static-mounts print-only"><article><h3>Limited project mount</h3><p>Grants access to selected project files. Container isolation still applies; file access follows mount permissions.</p></article><article><h3>Added Docker socket</h3><p>Connects a client to the daemon. The client may request new containers and bind mounts, subject to daemon privileges.</p></article></div>
+      <p class="print-only print-citation">Sources: Docker security — docs.docker.com/engine/security/; bind mounts — docs.docker.com/engine/storage/bind-mounts/; Docker Desktop VM — docs.docker.com/desktop/features/vmm/</p>
+    </div>
+    <aside class="notes">
+      <h3>Objective · 14:00–18:00</h3>
+      <p>Explain meaningful container isolation and how shared capabilities change what processes can do. Ordinary containerized workloads suit many tasks. A socket mount is a deliberate configuration, not a property of every container.</p>
+      <p>Interaction: compare a limited project mount with the added Docker socket. Container B in this overview represents another container sharing the same Linux kernel; the next slide explains how a client can request a new B. Ask the audience what requests the Docker client could make after receiving the socket.</p>
+      <p>The diagram's execution environment is Linux. On macOS Docker Desktop runs Linux containers in a Linux VM: they share that VM's Linux kernel, not the macOS kernel. Daemon access is subject to the daemon's privileges and host integrations. Mounts are configured individually.</p>
+      <p>Static fallback: diagram plus both configuration explanations. Bridge: follow one daemon request, from socket to a new container and a deliberately shared dummy folder.</p>
+      <p>Sources: https://docs.docker.com/engine/security/#docker-daemon-attack-surface ; https://docs.docker.com/engine/storage/bind-mounts/ ; https://docs.docker.com/desktop/features/vmm/</p>
+    </aside>
+  </section>
+
+  <section id="socket-mechanism" aria-labelledby="socket-heading">
+    <div class="wrap">
+      <p class="eyebrow">Follow the daemon request</p>
+      <h2 id="socket-heading">Access through the Docker socket.</h2>
+      <p class="lead">The client asks the daemon to create another container with a host bind mount.</p>
+      <div class="socket-stage" data-step="1" role="img" aria-label="Illustrated Docker socket request chain, step 1: container A connects to the deliberately mounted socket.">
+        <svg class="iso-svg" viewBox="0 0 1432 346" aria-hidden="true">
+          <defs><marker id="socket-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="m0 0 10 5-10 5Z" fill="#2563eb"/></marker></defs>
+          <text x="36" y="31" class="svg-cap">Deliberately exposed host daemon</text><text x="1394" y="31" text-anchor="end" class="illustration-label">Illustration · not live output</text>
+          <rect x="35" y="59" width="268" height="236" rx="19" fill="#eff6ff" stroke="#2563eb" stroke-width="2.5"/>
+          <text x="60" y="96" class="svg-title">Container A</text><use href="#robot" x="53" y="118" width="137" height="154"/><text x="182" y="163" font-size="18" font-weight="650">Docker</text><text x="182" y="188" font-size="18" font-weight="650">client</text>
+          <g class="mechanism-element visible" data-mechanism-at="1"><path class="mechanism-wire active" data-mechanism-wire="1" d="M303 160h206"/><rect x="325" y="147" width="22" height="26" rx="5" fill="#dbeafe" stroke="#0f172a" stroke-width="3"/><text x="349" y="137" class="step-label">Mounted socket</text></g>
+          <g class="mechanism-element" data-mechanism-at="2"><path class="mechanism-wire" data-mechanism-wire="2" d="M337 192h170" marker-end="url(#socket-arrow)"/><text x="351" y="220" class="step-label">API request</text></g>
+          <rect x="510" y="101" width="264" height="119" rx="17" fill="#fff" stroke="#0f172a" stroke-width="3"/>
+          <text x="642" y="144" text-anchor="middle" class="svg-title">Host daemon</text><text x="642" y="181" text-anchor="middle" class="svg-small">Resolves the host path</text>
+          <g class="mechanism-element" data-mechanism-at="3"><path class="mechanism-wire" data-mechanism-wire="3" d="M774 155h198" marker-end="url(#socket-arrow)"/><text x="826" y="133" class="step-label">Create B</text></g>
+          <g class="mechanism-element" data-mechanism-at="3"><rect x="974" y="59" width="328" height="179" rx="19" fill="#eff6ff" stroke="#2563eb" stroke-width="2.5"/><text x="998" y="95" class="svg-title">Container B</text><svg x="1000" y="122" width="53" height="53" color="#1d4ed8"><use href="#icon-terminal"/></svg><text x="1074" y="145">Reads proof.txt</text><text x="1074" y="177" class="svg-small">Started by the daemon</text></g>
+          <g class="mechanism-element" data-mechanism-at="4"><rect x="510" y="258" width="264" height="65" rx="13" fill="#fffbeb" stroke="#0f172a" stroke-width="2.5"/><text x="642" y="285" text-anchor="middle" font-size="21" font-weight="650">Dummy host folder</text><text x="642" y="309" text-anchor="middle" font-size="18">proof.txt · harmless fixture</text><path class="mechanism-wire" data-mechanism-wire="4" d="M774 289h103v-78h96" marker-end="url(#socket-arrow)"/><text x="793" y="313" class="step-label">Read-only mount</text></g>
+          <g class="socket-result"><rect x="974" y="257" width="422" height="66" rx="12" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/><text x="991" y="281" font-size="18" font-weight="600">“Hello from a deliberately created</text><text x="991" y="307" font-size="18" font-weight="600">host test file!” · illustrative contents</text></g>
+        </svg>
+      </div>
+      <div class="socket-steps" role="group" aria-label="Select a step in the socket mechanism">
+        <button type="button" data-socket-step="1" aria-pressed="true" aria-controls="socket-caption"><span class="step-number">1</span>Socket</button><button type="button" data-socket-step="2" aria-pressed="false" aria-controls="socket-caption"><span class="step-number">2</span>Request</button><button type="button" data-socket-step="3" aria-pressed="false" aria-controls="socket-caption"><span class="step-number">3</span>Container B</button><button type="button" data-socket-step="4" aria-pressed="false" aria-controls="socket-caption"><span class="step-number">4</span>Read-only mount</button><button type="button" data-socket-step="5" aria-pressed="false" aria-controls="socket-caption"><span class="step-number">5</span>File contents</button>
+      </div>
+      <div class="socket-controls" role="group" aria-label="Socket animation controls"><button type="button" id="socket-play" class="primary">Play scene</button><button type="button" id="socket-pause" disabled>Pause</button><button type="button" id="socket-replay">Replay</button><span class="socket-status" id="socket-status" aria-live="polite">11-second scene · ready</span></div>
+      <div class="socket-caption" id="socket-caption" aria-live="polite" aria-atomic="true"><h3>1 · Connect to the deliberately mounted socket.</h3><p>Container A has a Docker client and a connection to the host daemon. It has no mount of the dummy folder.</p></div>
+      <ol class="static-socket-steps print-only"><li>A's Docker client connects to the deliberately mounted host socket.</li><li>The client sends a Docker API request to that daemon.</li><li>The daemon creates a new container B.</li><li>The daemon resolves the host path and mounts the dummy folder read-only into B.</li><li>B reads proof.txt through the mount. The contents return through the request chain.</li></ol>
+      <p class="print-only print-citation">Sources: Docker daemon attack surface — docs.docker.com/engine/security/#docker-daemon-attack-surface; bind mounts — docs.docker.com/engine/storage/bind-mounts/</p>
+    </div>
+    <aside class="notes">
+      <h3>Objective · 18:00–20:00</h3>
+      <p>Explain the mechanism before executing the demonstration. This is daemon control through a deliberately exposed socket. No kernel is broken. A is not given the dummy folder; A instructs the daemon to create B with a bind mount. The daemon resolves the host path.</p>
+      <p>Interaction: select the five steps manually, or Play/Replay the 11-second sequence. Pause preserves the point in time. It also pauses on slide exit or when the document is hidden. Reduced-motion preference starts at the final still. File contents shown here are labeled illustration, not live output.</p>
+      <p>On macOS Docker Desktop mediates access through its Linux VM and file-sharing boundaries. Host daemon privileges and allowed paths govern what a request can do. This is not unrestricted macOS root access and not a feature of every container.</p>
+      <p>Static fallback: complete mechanism plus all five numbered explanations. Bridge: observe the same chain with one disposable fixture.</p>
+      <p>Sources: https://docs.docker.com/engine/security/#docker-daemon-attack-surface ; https://docs.docker.com/engine/storage/bind-mounts/ ; development plan, comic B.</p>
+    </aside>
+  </section>
+
+  <section id="socket-demo" aria-labelledby="socket-demo-heading">
+    <div class="wrap">
+      <p class="eyebrow">Live demonstration</p>
+      <h2 id="socket-demo-heading">A deliberately shared host test file.</h2>
+      <div class="demo-toolbar"><span class="context-label">Host shell · Bash</span><span class="copy-status" id="socket-copy-status" aria-live="polite"></span><button type="button" id="socket-copy">Copy command</button></div>
+      <pre><code id="socket-command" class="language-bash" data-line-numbers="1,3|2|4|5|6|1-6">docker run --rm \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  docker:cli \
+  docker run --rm \
+    -v "$DEMO_DIR:/host-data:ro" \
+    alpine cat /host-data/proof.txt</code></pre>
+      <div class="demo-mechanism">
+        <svg class="iso-svg" viewBox="0 0 1432 126" role="img" aria-label="Host shell starts container A, which calls the host Docker daemon; the daemon starts container B with a read-only dummy-folder mount.">
+          <rect class="demo-target active" data-demo-target="host" x="0" y="23" width="216" height="78" rx="13"/><text x="108" y="56" text-anchor="middle" font-size="23" font-weight="650">Host shell</text><text x="108" y="82" text-anchor="middle" class="svg-small">Expands DEMO_DIR</text>
+          <path class="demo-link" data-demo-link="launch" d="M216 62h70"/><path d="m276 55 10 7-10 7" fill="none" stroke="#94a3b8" stroke-width="2"/>
+          <rect class="demo-target active" data-demo-target="a" x="287" y="23" width="230" height="78" rx="13"/><text x="402" y="56" text-anchor="middle" font-size="23" font-weight="650">Container A</text><text x="402" y="82" text-anchor="middle" class="svg-small">Docker client</text>
+          <path class="demo-link" data-demo-link="socket" d="M517 62h128"/><text x="580" y="45" text-anchor="middle" class="svg-small">Socket</text>
+          <rect class="demo-target" data-demo-target="daemon" x="646" y="23" width="263" height="78" rx="13"/><text x="777" y="56" text-anchor="middle" font-size="23" font-weight="650">Host daemon</text><text x="777" y="82" text-anchor="middle" class="svg-small">Creates B + mount</text>
+          <path class="demo-link" data-demo-link="request" d="M909 62h75"/><path d="m974 55 10 7-10 7" fill="none" stroke="#94a3b8" stroke-width="2"/>
+          <rect class="demo-target" data-demo-target="b" x="985" y="23" width="216" height="78" rx="13"/><text x="1093" y="56" text-anchor="middle" font-size="23" font-weight="650">Container B</text><text x="1093" y="82" text-anchor="middle" class="svg-small">Reads proof.txt</text>
+          <path class="demo-link" data-demo-link="mount" d="M1201 62h35"/>
+          <rect class="demo-target" data-demo-target="folder" x="1237" y="23" width="195" height="78" rx="13"/><text x="1335" y="56" text-anchor="middle" font-size="22" font-weight="650">Dummy folder</text><text x="1335" y="82" text-anchor="middle" class="svg-small">Read-only mount</text>
+        </svg>
+      </div>
+      <div class="socket-caption demo-caption" id="socket-code-caption" aria-live="polite" aria-atomic="true"><h3>1 · Start container A with a Docker client.</h3><p>Lines 1 and 3 choose the first container and its client image. The complete command runs from the host shell.</p></div>
+      <div class="static-code-steps print-only"><article><h3>1 · Lines 1, 3</h3><p>Start container A with a Docker client image.</p></article><article><h3>2 · Line 2</h3><p>Mount the host daemon socket into A.</p></article><article><h3>3 · Line 4</h3><p>A's client requests a new container B from that daemon.</p></article><article><h3>4 · Line 5</h3><p>The daemon mounts the dummy host folder read-only in B. DEMO_DIR expands in the host shell.</p></article><article><h3>5 · Line 6</h3><p>B reads the harmless proof.txt through that mount.</p></article><article><h3>6 · Lines 1–6</h3><p>Revisit the chain: client → socket → daemon → B → read-only fixture.</p></article></div>
+      <p class="demo-foot"><span class="success-criterion">Observe:</span> container B prints the dummy file. <a href="../demo/01-docker-socket/runbook.md" target="_blank" rel="noopener">Prepared demo runbook</a> · DEMO_DIR is set before the demo.</p>
+      <p class="print-only print-citation">Sources: Docker run — docs.docker.com/reference/cli/docker/container/run/; bind mounts — docs.docker.com/engine/storage/bind-mounts/; demo/01-docker-socket/runbook.md</p>
+    </div>
+    <aside class="notes">
+      <h3>Objective · 20:00–26:00</h3>
+      <p>Observe daemon control through an intentionally mounted socket using a harmless test fixture. Prepare the folder and pre-pull docker:cli and alpine with demo/01-docker-socket/runbook.md before the workshop. DEMO_DIR is the absolute fixture path set in the HOST shell. It expands there before A starts; A did not discover the host path.</p>
+      <p>Interaction: normal presentation forward/back navigation advances or reverses the six stationary code highlight states: 1,3 | 2 | 4 | 5 | 6 | 1–6. Captions and diagram emphasis follow each highlight. Copy command returns all six source lines without line numbers or highlight markup; it does not execute anything. Returning from the terminal preserves the highlighted state.</p>
+      <p>Clock: two minutes on prediction and the highlight chain, three minutes executing the prepared command and inspecting the actual result, one minute mapping it back to the daemon request. Do not perform setup or repeat runs live. Both containers use --rm. The fixture mount is read-only and restricted to the dummy directory. Socket access is broader than that read-only fixture mount.</p>
+      <p>The canonical command was rehearsed locally with the harmless fixture. Use the runbook and recorded actual result as fallback. This slide does not automatically display success output. On macOS the fixture must be available through Docker Desktop file sharing; daemon privileges and sharing constraints still apply.</p>
+      <p>Print fallback: full source and all six explanations. Bridge to the next planned topic: keep useful Docker work inside a separate microVM and its own Docker engine.</p>
+      <p>Sources: https://docs.docker.com/engine/security/#docker-daemon-attack-surface ; https://docs.docker.com/reference/cli/docker/container/run/ ; https://docs.docker.com/engine/storage/bind-mounts/</p>
+    </aside>
+  </section>
+
+
+  <section id="sandbox-architecture" aria-labelledby="sandbox-architecture-heading">
+    <div class="wrap">
+      <p class="eyebrow">Change the destination of Docker work</p>
+      <h2 id="sandbox-architecture-heading">Docker work stays inside the microVM.</h2>
+      <p class="lead">The sandbox has its own Docker engine and Linux kernel.</p>
+      <div class="sandbox-selectors" role="group" aria-label="Trace Docker and shared-resource paths">
+        <button type="button" data-sandbox-path="host" aria-pressed="true" aria-controls="sandbox-path-caption">Host daemon request</button><button type="button" data-sandbox-path="sandbox" aria-pressed="false" aria-controls="sandbox-path-caption">Sandbox engine request</button><button type="button" data-sandbox-path="workspace" aria-pressed="false" aria-controls="sandbox-path-caption">Shared workspace</button><button type="button" data-sandbox-path="network" aria-pressed="false" aria-controls="sandbox-path-caption">Outbound network</button>
+      </div>
+      <div class="sandbox-architecture">
+        <svg class="sandbox-svg" viewBox="0 0 1432 408" role="img" aria-labelledby="sandbox-architecture-title sandbox-architecture-desc">
+          <title id="sandbox-architecture-title">Host-daemon control compared with a separate engine inside a microVM</title><desc id="sandbox-architecture-desc">On the left a socket-enabled client controls the host daemon. On the right agent tools, a separate Docker engine and its app containers are inside the sandbox microVM with its own Linux kernel. Workspace and outbound network connections are intentionally shared paths.</desc>
+          <defs><marker id="sandbox-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="m0 0 10 5-10 5Z" fill="#2563eb"/></marker></defs>
+          <rect x="0" y="0" width="690" height="408" rx="21" fill="#f7f9fc"/><rect x="742" y="0" width="690" height="408" rx="21" fill="#f7f9fc"/>
+          <text x="25" y="29" class="sb-cap">Socket-enabled container</text><text x="767" y="29" class="sb-cap">Docker Sandboxes</text>
+          <rect class="sb-node emphasized" data-sandbox-node="host-client" x="29" y="82" width="242" height="132" rx="16"/><text x="52" y="117" class="sb-title">Agent tools</text><svg x="52" y="140" width="43" height="43" color="#1d4ed8" aria-hidden="true"><use href="#icon-terminal"/></svg><text x="113" y="166" font-size="21">Docker client</text>
+          <path class="sb-route emphasized" data-sandbox-route="host-request" d="M271 149h108" marker-end="url(#sandbox-arrow)"/><text x="321" y="128" text-anchor="middle" class="sb-small">Socket</text>
+          <rect class="sb-node emphasized" data-sandbox-node="host-daemon" x="381" y="101" width="278" height="97" rx="16"/><text x="520" y="140" text-anchor="middle" class="sb-title">Host daemon</text><text x="520" y="172" text-anchor="middle" class="sb-small">Host-controlled engine</text>
+          <path class="sb-route" data-sandbox-route="host-children" d="M520 198v33" marker-end="url(#sandbox-arrow)"/><rect class="sb-node" data-sandbox-node="host-children" x="381" y="237" width="278" height="57" rx="13"/><text x="520" y="259" text-anchor="middle" font-size="19" font-weight="600">Host-managed</text><text x="520" y="283" text-anchor="middle" font-size="19" font-weight="600">containers</text>
+          <rect x="29" y="327" width="630" height="35" rx="8" fill="#dbeafe"/><text x="344" y="352" text-anchor="middle" font-size="20" font-weight="600">Underlying Linux kernel</text><text x="29" y="389" class="sb-small">A socket connection grants daemon control.</text>
+          <rect x="766" y="55" width="640" height="273" rx="21" fill="#eff6ff" stroke="#2563eb" stroke-width="2.5"/><text x="790" y="84" font-size="19" font-weight="650" fill="#1d4ed8">Sandbox microVM</text>
+          <rect class="sb-node" data-sandbox-node="sandbox-client" x="790" y="106" width="177" height="108" rx="14"/><text x="879" y="143" text-anchor="middle" font-size="24" font-weight="650">Agent tools</text><text x="879" y="178" text-anchor="middle" font-size="20">Docker client</text>
+          <path class="sb-route" data-sandbox-route="sandbox-request" d="M967 151h76" marker-end="url(#sandbox-arrow)"/>
+          <rect class="sb-node" data-sandbox-node="sandbox-engine" x="1046" y="106" width="332" height="88" rx="14"/><text x="1212" y="140" text-anchor="middle" class="sb-title">Sandbox Docker engine</text><text x="1212" y="171" text-anchor="middle" class="sb-small">Separate from the host daemon</text>
+          <path class="sb-route" data-sandbox-route="sandbox-children" d="M1212 194v23" marker-end="url(#sandbox-arrow)"/><rect class="sb-node" data-sandbox-node="sandbox-children" x="1046" y="223" width="332" height="44" rx="11"/><text x="1212" y="252" text-anchor="middle" font-size="22" font-weight="600">App containers</text>
+          <rect x="790" y="281" width="588" height="29" rx="7" fill="#dbeafe"/><text x="1084" y="302" text-anchor="middle" font-size="19" font-weight="650">Separate Linux kernel</text>
+          <path class="sb-route" data-sandbox-route="workspace" d="M790 181h-32v204h31"/><rect class="sb-node" data-sandbox-node="workspace" x="790" y="363" width="250" height="42" rx="10"/><text x="915" y="391" text-anchor="middle" font-size="21" font-weight="600">Chosen workspace</text>
+          <path class="sb-route" data-sandbox-route="network" d="M1378 151h43v234h-59"/><rect class="sb-node" data-sandbox-node="network" x="1110" y="363" width="252" height="42" rx="10"/><text x="1236" y="391" text-anchor="middle" font-size="21" font-weight="600">Network policy</text>
+        </svg>
+      </div>
+      <div class="sandbox-caption" id="sandbox-path-caption" aria-live="polite" aria-atomic="true"><h3>The socket connects the client to the host daemon.</h3><p>The daemon handles the request and manages the resulting containers. This is the configuration we just demonstrated.</p></div>
+      <div class="static-sandbox-paths print-only"><article><h3>Host daemon request</h3><p>A deliberately mounted socket lets the client ask the host daemon to manage containers.</p></article><article><h3>Sandbox engine request</h3><p>The sandbox client sends Docker work to its own engine, inside its microVM and separate Linux kernel.</p></article><article><h3>Shared workspace</h3><p>The chosen workspace crosses the VM boundary intentionally. Shared writable files remain writable.</p></article><article><h3>Outbound network</h3><p>Outbound connections follow network policy. VM isolation does not remove network access decisions.</p></article></div>
+      <p class="sandbox-caveat"><strong>Shared writable files remain writable.</strong> Local stdio MCP servers can run on the host, outside the VM boundary.</p>
+      <p class="print-only print-citation">Sources: Docker isolation layers — docs.docker.com/ai/sandboxes/security/isolation/</p>
+    </div>
+    <aside class="notes">
+      <h3>Objective · 26:00–29:00</h3>
+      <p>Fulfill slide 09's promise: useful Docker work can run inside a different boundary. Compare the host daemon exposed to a socket-enabled client with the separate Docker engine inside a sandbox microVM. The agent tools, engine and app containers use that VM's separate Linux kernel.</p>
+      <p>Interaction: select the two request destinations, then workspace and outbound network. Diagrams stay in place; captions and path emphasis follow selection. Intentional resource sharing remains part of the model. A direct writable workspace still allows edits to host project files.</p>
+      <p>Keep the visible caveat explicit: local stdio MCP servers can run on the host, outside the VM boundary. Their execution and access need separate consideration. Do not imply the model service itself runs in this local VM, or that all integrations stay inside it.</p>
+      <p>Print fallback includes both request paths and all four connection explanations. Bridge: the robot can still build successfully using the sandbox's own engine.</p>
+      <p>Sources: https://docs.docker.com/ai/sandboxes/security/isolation/</p>
+    </aside>
+  </section>
+
+  <section id="microvm-boundary" aria-labelledby="microvm-heading">
+    <div class="wrap">
+      <p class="eyebrow">Useful work inside the boundary</p>
+      <h2 id="microvm-heading">The robot meets the microVM boundary.</h2>
+      <p class="lead">Its own Docker engine keeps working. The host daemon is a different destination.</p>
+      <div class="microvm-stage" data-phase="0" role="img" aria-label="MicroVM comic: the blue robot builds successfully with the sandbox engine inside its VM.">
+        <svg class="sandbox-svg" viewBox="0 0 1432 370" aria-hidden="true">
+          <rect x="29" y="43" width="982" height="289" rx="24" fill="#eff6ff" stroke="#2563eb" stroke-width="3"/><text x="55" y="79" class="sb-title">Docker Sandbox / microVM</text><text x="1392" y="29" text-anchor="end" font-size="15" font-weight="750" letter-spacing=".08em" fill="#1d4ed8">Illustrated default engine boundary</text>
+          <rect x="56" y="293" width="927" height="24" rx="6" fill="#dbeafe"/><text x="519" y="311" text-anchor="middle" font-size="17" font-weight="650">Own Linux kernel</text>
+          <rect x="485" y="181" width="250" height="94" rx="15" fill="#fff" stroke="#0f172a" stroke-width="3"/><text x="610" y="218" text-anchor="middle" class="sb-title">Sandbox engine</text><text x="610" y="250" text-anchor="middle" class="sb-small">Builds run here</text>
+          <g class="micro-success"><path d="M318 244h164" stroke="#10b981" stroke-width="4" stroke-linecap="round"/><rect x="493" y="117" width="234" height="43" rx="11" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/><path d="m510 137 7 7 14-15" stroke="#10b981" stroke-width="3" fill="none"/><text x="625" y="145" text-anchor="middle" font-size="21" font-weight="650">Image built inside</text></g>
+          <g class="micro-attempt"><path id="micro-hose" class="micro-hose" d="M1010 243h-25"/><path d="M1017 243h100" fill="none" stroke="#94a3b8" stroke-width="3" stroke-dasharray="7 8"/><rect x="996" y="229" width="15" height="28" rx="4" fill="#dbeafe" stroke="#0f172a" stroke-width="3"/></g>
+          <g class="micro-blocked"><path d="m998 225 25 35m0-35-25 35" stroke="#ef4444" stroke-width="4" stroke-linecap="round"/><text x="853" y="130" font-size="40" font-weight="800" transform="rotate(-7 853 130)" fill="#1d4ed8">BOING!</text></g>
+          <g id="micro-robot" transform="translate(160 108)"><use href="#robot" width="160" height="180"/><g class="micro-stars" fill="#f59e0b"><path d="m41-2 3 7 8 1-6 5 2 8-7-4-7 4 2-8-6-5 8-1Z"/><path d="m99-15 3 7 8 1-6 5 2 8-7-4-7 4 2-8-6-5 8-1Z"/><path d="m145 0 3 7 8 1-6 5 2 8-7-4-7 4 2-8-6-5 8-1Z"/></g></g>
+          <rect x="1121" y="116" width="273" height="125" rx="18" fill="#fff" stroke="#0f172a" stroke-width="3"/><text x="1257" y="158" text-anchor="middle" class="sb-title">Host daemon</text><text x="1257" y="193" text-anchor="middle" class="sb-small">Outside this VM</text><text x="1257" y="219" text-anchor="middle" class="sb-small">No default connection</text>
+          <text x="1122" y="287" class="sb-small">A separate engine boundary,</text><text x="1122" y="315" class="sb-small">with deliberate sharing.</text>
+        </svg>
+      </div>
+      <div class="microvm-controls" role="group" aria-label="MicroVM comic controls"><button type="button" class="primary" id="microvm-play">Play scene</button><button type="button" id="microvm-pause" disabled>Pause</button><button type="button" id="microvm-replay">Replay</button><span class="microvm-status" id="microvm-status" aria-live="polite">11-second scene · ready</span></div>
+      <div class="sandbox-caption microvm-caption" id="microvm-caption" aria-live="polite" aria-atomic="true"><h3>Build successfully with the sandbox engine.</h3><p>The robot's useful Docker work stays inside the microVM.</p></div>
+      <div class="static-microvm-frames print-only" aria-label="Three-frame microVM comic storyboard">
+        <article><svg class="sandbox-svg" viewBox="0 0 370 190" aria-hidden="true"><rect x="8" y="8" width="354" height="173" rx="15" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/><use href="#robot" x="30" y="35" width="110" height="124"/><path d="M135 115h60" stroke="#10b981" stroke-width="3"/><rect x="195" y="70" width="147" height="70" rx="10" fill="#fff" stroke="#0f172a" stroke-width="2"/><text x="268" y="98" text-anchor="middle" font-size="19" font-weight="650">Sandbox</text><text x="268" y="124" text-anchor="middle" font-size="19">engine</text><path d="m250 41 9 9 18-18" stroke="#10b981" stroke-width="4" fill="none"/></svg><h3>1. Build inside</h3><p>The sandbox engine builds an image inside the microVM.</p></article>
+        <article><svg class="sandbox-svg" viewBox="0 0 370 190" aria-hidden="true"><rect x="8" y="8" width="247" height="173" rx="15" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/><use href="#robot" x="142" y="50" width="110" height="124"/><path d="M245 133h23" stroke="#2563eb" stroke-width="4"/><path d="m250 120 16 25m0-25-16 25" stroke="#ef4444" stroke-width="3"/><text x="81" y="43" font-size="25" font-weight="800">BOING!</text><rect x="283" y="80" width="78" height="67" rx="10" fill="#fff" stroke="#0f172a" stroke-width="2"/><text x="322" y="108" text-anchor="middle" font-size="17">Host</text><text x="322" y="132" text-anchor="middle" font-size="17">daemon</text></svg><h3>2. Meet the boundary</h3><p>The attempted hose does not connect to the host daemon by default.</p></article>
+        <article><svg class="sandbox-svg" viewBox="0 0 370 190" aria-hidden="true"><rect x="8" y="8" width="354" height="173" rx="15" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/><use href="#robot" x="30" y="35" width="110" height="124"/><rect x="190" y="70" width="150" height="70" rx="10" fill="#fff" stroke="#0f172a" stroke-width="2"/><text x="265" y="98" text-anchor="middle" font-size="19" font-weight="650">Sandbox</text><text x="265" y="124" text-anchor="middle" font-size="19">engine</text><path d="M137 115h50" stroke="#10b981" stroke-width="3"/><path d="m250 41 9 9 18-18" stroke="#10b981" stroke-width="4" fill="none"/></svg><h3>3. Keep working</h3><p>The robot returns to its own engine. Shared resources still need care.</p></article>
+      </div>
+      <p class="microvm-sharing"><strong>Shared writable files remain writable.</strong> The VM boundary does not replace access decisions.</p>
+      <p class="print-only print-citation">Sources: Docker isolation layers — docs.docker.com/ai/sandboxes/security/isolation/; workshop development plan, comic C. Explanatory illustration.</p>
+    </div>
+    <aside class="notes">
+      <h3>Objective · 29:00–30:00</h3>
+      <p>Make the default engine boundary memorable while retaining useful autonomy. The robot first builds successfully inside its VM, tries to connect its hose to the host daemon, hits the boundary with BOING, then returns to the internal engine.</p>
+      <p>Interaction: Play starts an 11-second comic, Pause freezes the precise animation time, Replay restarts. Slide exit and hidden documents pause it. Reduced-motion preference starts at the useful final still. Print uses three full storyboard frames. The complete scene has its own labels and changing explanation.</p>
+      <p>This is an illustration of the default Docker Engine boundary, not proof of absolute protection. Intentionally shared writable files remain writable. Host integrations such as local stdio MCP servers have separate access considerations.</p>
+      <p>Bridge: launch the coding agent with an explicit workspace, then use it to build the app in the next segment.</p>
+      <p>Sources: https://docs.docker.com/ai/sandboxes/security/isolation/ ; workshop development plan, comic C.</p>
+    </aside>
+  </section>
+
+  <section id="agent-launch" aria-labelledby="launch-heading">
+    <div class="wrap">
+      <p class="eyebrow">Launch with an explicit workspace</p>
+      <h2 id="launch-heading">Starting the coding agent.</h2>
+      <p class="launch-prereqs"><strong>Before presenting:</strong> sbx installed · Docker sign-in · agent authentication · network policy selected.</p>
+      <div class="launch-toolbar"><span class="launch-context">Host shell · Bash</span><span class="launch-copy-status" id="launch-copy-status" aria-live="polite"></span><button type="button" id="launch-copy">Copy command</button></div>
+      <pre><code id="launch-command" class="language-bash" data-line-numbers="1|2-3|4|5|1-5">cd demo/02-agent-streamlit
+sbx run \
+  --name odsc-demo \
+  codex \
+  .</code></pre>
+      <div class="launch-mechanism">
+        <svg class="sandbox-svg" viewBox="0 0 1432 110" role="img" aria-label="Launch flow: chosen project folder, named sandbox, Codex agent and shared current-directory workspace.">
+          <rect class="sb-node emphasized" data-launch-node="folder" x="0" y="14" width="280" height="80" rx="13"/><text x="140" y="47" text-anchor="middle" font-size="24" font-weight="650">Project folder</text><text x="140" y="76" text-anchor="middle" class="sb-small">demo/02-agent-streamlit</text>
+          <path class="sb-route" data-launch-route="name" d="M280 54h98"/><path d="m367 47 11 7-11 7" fill="none" stroke="#94a3b8" stroke-width="2"/>
+          <rect class="sb-node" data-launch-node="name" x="380" y="14" width="280" height="80" rx="13"/><text x="520" y="47" text-anchor="middle" font-size="24" font-weight="650">Named sandbox</text><text x="520" y="76" text-anchor="middle" class="sb-small">odsc-demo</text>
+          <path class="sb-route" data-launch-route="agent" d="M660 54h98"/><path d="m747 47 11 7-11 7" fill="none" stroke="#94a3b8" stroke-width="2"/>
+          <rect class="sb-node" data-launch-node="agent" x="760" y="14" width="280" height="80" rx="13"/><text x="900" y="47" text-anchor="middle" font-size="24" font-weight="650">Agent choice</text><text x="900" y="76" text-anchor="middle" class="sb-small">Codex</text>
+          <path class="sb-route" data-launch-route="workspace" d="M1040 54h98"/><path d="m1127 47 11 7-11 7" fill="none" stroke="#94a3b8" stroke-width="2"/>
+          <rect class="sb-node" data-launch-node="workspace" x="1140" y="14" width="292" height="80" rx="13"/><text x="1286" y="47" text-anchor="middle" font-size="24" font-weight="650">Shared workspace</text><text x="1286" y="76" text-anchor="middle" class="sb-small">Current directory · dot</text>
+        </svg>
+      </div>
+      <div class="sandbox-caption launch-caption" id="launch-code-caption" aria-live="polite" aria-atomic="true"><h3>1 · Choose the project folder.</h3><p>Line 1 changes the host shell's current directory. Start from the workshop root.</p></div>
+      <div class="static-launch-steps print-only"><article><h3>1 · Line 1</h3><p>Choose the project folder from the workshop root.</p></article><article><h3>2 · Lines 2–3</h3><p>Run the sandbox and give it the name odsc-demo.</p></article><article><h3>3 · Line 4</h3><p>Select Codex as the coding agent.</p></article><article><h3>4 · Line 5</h3><p>The dot shares the current directory as the direct workspace. Writable edits reach host files.</p></article><article><h3>5 · Lines 1–5</h3><p>Project, sandbox name, agent and workspace make the launch explicit. Authenticate and select network policy before the session.</p></article></div>
+      <p class="launch-foot">Local sbx does not require Docker Desktop. The earlier socket demo needs a host Docker daemon. <a href="../presenter/agent-launch.md" target="_blank" rel="noopener">Launch runbook</a></p>
+      <p class="print-only print-citation">Sources: Docker usage — docs.docker.com/ai/sandboxes/usage/; installation — docs.docker.com/ai/sandboxes/install/; Codex setup — docs.docker.com/ai/sandboxes/agents/codex/</p>
+    </div>
+    <aside class="notes">
+      <h3>Objective · 30:00–33:00</h3>
+      <p>Orient attendees to the five-line launch command, not a live installation exercise. Run from the workshop root, then change to the prepared project folder. The dot grants access to that current-directory workspace. This example uses direct workspace sharing: writable project changes reach host files.</p>
+      <p>Interaction: presentation forward/back navigation advances and reverses stationary highlights through 1 | 2–3 | 4 | 5 | 1–5. Captions and diagram emphasis follow the active component. Copy command returns all five source lines, with no line numbers or markup; it does not execute the command.</p>
+      <p>Prerequisites are preparation requirements, not a claim that an authenticated session has already launched. Install sbx, complete Docker sign-in and agent authentication, and select network policy before the session, using presenter/agent-launch.md. Docker sign-in and the model-provider credentials serve different purposes. An existing named sandbox can reconnect instead of creating a fresh one; rehearse the intended named environment.</p>
+      <p>Local sbx does not require Docker Desktop. The earlier socket demo needs a host Docker daemon. Current CLI help and official documentation were checked for this command; no actual agent launch or model call is implied by the slide.</p>
+      <p>Fallback: use a prepared sandbox or a rehearsed launch recording when available. Static export includes the full source and all five explanations. Bridge: give this environment the toy sales CSV and a focused app-building task.</p>
+      <p>Sources: https://docs.docker.com/ai/sandboxes/usage/ ; https://docs.docker.com/ai/sandboxes/install/ ; https://docs.docker.com/ai/sandboxes/agents/codex/</p>
+    </aside>
+  </section>
+
+  <section id="app-hub" data-app-view="task" aria-labelledby="app-hub-heading">
+    <div class="wrap">
+      <p class="eyebrow">Nine-minute demonstration · 33:00–42:00</p>
+      <h2 id="app-hub-heading">A sales dashboard from a CSV.</h2>
+      <div class="app-tabs" role="group" aria-label="Select the app demonstration view"><button type="button" data-app-tab="task" aria-pressed="true">Task + data</button><button type="button" data-app-tab="python" aria-pressed="false">Python</button><button type="button" data-app-tab="docker" aria-pressed="false">Dockerfile + build</button><button type="button" data-app-tab="publish" aria-pressed="false">Publish + app</button></div>
+      <div class="app-toolbar"><span class="app-context" id="app-context">Synthetic CSV · prepared task</span><div class="app-subtabs" id="app-subtabs" hidden><button type="button" data-app-subview="docker" aria-pressed="true">Dockerfile</button><button type="button" data-app-subview="build" aria-pressed="false">Build / run</button></div><span class="copy-feedback" id="app-copy-status" aria-live="polite"></span><button type="button" id="app-copy">Copy code</button></div>
+      <div class="app-surface">
+        <article class="app-task" id="app-task"><h3>Give the agent a focused task.</h3><p>Build a Streamlit dashboard with region/product filters, total revenue, a time trend, and a regional chart. Create the app, dependencies, and a Dockerfile. Build and run with the sandbox's own engine.</p><p class="task-constraint">Synthetic local data · no external API or database</p></article>
+        <div class="app-code"><pre id="app-code-wrapper"><code id="app-active-code" class="language-plaintext" data-line-numbers="1|2-3|1-3">date,region,product,revenue
+2026-01-01,West,Notebook,1200
+2026-01-01,East,Notebook,900</code></pre></div>
+        <div class="app-flow" id="app-flow" aria-label="Active code components"><span class="active">CSV columns</span><span>Sample rows</span></div>
+        <div class="app-published" id="app-published" hidden><img src="assets/sales-app/prepared-dashboard.png" alt="Screenshot of the prepared synthetic sales dashboard, with filters and revenue charts"><p><strong>Prepared example</strong> · <a href="../presenter/prepared-dashboard.html" target="_blank" rel="noopener">Open labeled fallback</a></p></div>
+        <div class="port-flow" id="app-port-flow" hidden><svg class="finish-svg" viewBox="0 0 830 146" role="img" aria-label="Container port8501 maps to sandbox port8501; sbx publishes that sandbox port to an assigned host port."><rect class="f-node" data-port-node="container" x="0" y="35" width="230" height="90" rx="13"/><text x="115" y="68" text-anchor="middle" font-size="22" font-weight="650">App container</text><text x="115" y="101" text-anchor="middle" class="f-small">0.0.0.0:8501</text><path class="f-path" data-port-path="inner" d="M230 80h66"/><text x="263" y="62" text-anchor="middle" font-size="16">-p</text><rect class="f-node" data-port-node="sandbox" x="297" y="35" width="230" height="90" rx="13"/><text x="412" y="68" text-anchor="middle" font-size="22" font-weight="650">Sandbox port</text><text x="412" y="101" text-anchor="middle" class="f-small">8501</text><path class="f-path" data-port-path="outer" d="M527 80h65"/><text x="559" y="62" text-anchor="middle" font-size="16">sbx</text><rect class="f-node" data-port-node="host" x="593" y="35" width="237" height="90" rx="13"/><text x="711" y="68" text-anchor="middle" font-size="22" font-weight="650">Host browser</text><text x="711" y="101" text-anchor="middle" class="f-small">Observed assigned port</text></svg></div>
+      </div>
+      <div class="app-caption" id="app-code-caption" aria-live="polite" aria-atomic="true"><h3>1 · Four columns define the task.</h3><p>Dates, regions, products and revenue are synthetic data for this workshop.</p></div>
+      <div class="static-app-views print-only">
+        <article><h3>Task + data</h3><pre><code class="language-plaintext">date,region,product,revenue
+2026-01-01,West,Notebook,1200
+2026-01-01,East,Notebook,900</code></pre><p>Build region/product filters, total revenue, a time trend and a regional chart. Create app.py, dependencies and a Dockerfile. Use the sandbox engine. Prompt instructions describe work; configuration enforces access.</p></article>
+        <article><h3>Prepared Python · app.py lines 11–16</h3><pre><code class="language-python">df = pd.read_csv(DATA, parse_dates=[&quot;date&quot;])
+regions = st.multiselect(&quot;Region&quot;, df.region.unique(), df.region.unique())
+product_choices = df[&quot;product&quot;].unique()
+products = st.multiselect(&quot;Product&quot;, product_choices, product_choices)
+filtered = df[df.region.isin(regions) &amp; df[&quot;product&quot;].isin(products)]
+st.metric(&quot;Total revenue&quot;, f&quot;${filtered.revenue.sum():,.0f}&quot;)</code></pre><p>Load dates, choose filter values, keep matching rows, and aggregate revenue. DATA is the prepared file's local CSV path.</p></article>
+        <article><h3>Dockerfile + sandbox build/run</h3><pre><code class="language-dockerfile">FROM python:3.12-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY app.py .
+COPY data/ data/
+EXPOSE 8501
+CMD [&quot;streamlit&quot;, &quot;run&quot;, &quot;app.py&quot;, &quot;--server.address=0.0.0.0&quot;, &quot;--server.port=8501&quot;]</code></pre><pre><code class="language-bash">docker build -t odsc-sales:workshop .
+docker run -d --name odsc-sales -p 8501:8501 odsc-sales:workshop</code></pre><p>Base → dependencies → app/data → listening service. Run from the sandbox project. The -p mapping exposes container port 8501 on sandbox port 8501.</p></article>
+        <article><h3>Publish + prepared app</h3><pre><code class="language-bash">sbx ports odsc-demo --publish 8501
+sbx ports odsc-demo</code></pre><p>Run in the host shell. Publish sandbox port 8501, then inspect the assigned host port. Open the actual binding reported there; no port number is assumed. The screenshot/fallback is a prepared example, not proof of a fresh agent run.</p><p>Route: 33–34 task; 34–36 agent time-box; 36–38 filter/CMD/build; 38–40 run/publish; 40–42 test and boundary.</p></article>
+      </div>
+      <p class="app-foot">Prepared source, not generated output: <a href="../demo/02-agent-streamlit/expected-output/app.py" target="_blank" rel="noopener">full app</a> · <a href="../demo/02-agent-streamlit/runbook.md" target="_blank" rel="noopener">demo runbook</a>. At 36:00, switch to the prepared result if generation is incomplete.</p>
+      <p class="print-only print-citation">Sources: prepared demo/02-agent-streamlit/expected-output/; Docker ports — docs.docker.com/ai/sandboxes/usage/#publish-ports; Streamlit — docs.streamlit.io/</p>
+    </div>
+    <aside class="notes"><h3>Objective · 33:00–42:00</h3><p>Show useful app-building work within the sandbox boundary. The four tabs are states of this one slide: task/data, Python, Dockerfile/build and published app. The source and screenshot are explicitly prepared examples; they are not claimed as new agent output.</p><p>Clock:33–34 introduce task/CSV/success criteria;34–36 time-box live agent work; at36 switch to the validated result if incomplete.36–38 inspect the selected filter expression and Dockerfile CMD, then build;38–40 run/publish/open;40–42 test one filter and explain the engine boundary. Use cached dependencies/images and a prepared image if needed.</p><p>Interaction: each view uses real RevealHighlight steps in one code surface. Forward/back reverses stationary line emphasis and its caption. The Dockerfile tab also provides a Build/run subview. Copy returns the complete active source block without line numbers. Full app source includes aggregation/charts for Q&amp;A. Tab selection preserves each view's highlight position.</p><p>Success: region/product filters, total revenue, trend, regional breakdown, image and browser-reachable app. The container's -p8501:8501 maps into the sandbox; host-side sbx publishing maps that sandbox port to an assigned host port. Inspect the actual mapping rather than inventing a fixed host port.</p><p>Fallback: demo/02-agent-streamlit/runbook.md, prepared example, screenshot and local prepared-dashboard.html. Keep their labels visible. Do not imply prompt restrictions enforce security. Bridge: inspect the workspace/network resources intentionally shared.</p><p>Sources: exact prepared source files; https://docs.docker.com/ai/sandboxes/usage/#publish-ports ; https://docs.streamlit.io/</p></aside>
+  </section>
+
+  <section id="workspace-network" aria-labelledby="workspace-network-heading">
+    <div class="wrap">
+      <p class="eyebrow">Control the resources we share · 42:00–43:00</p>
+      <h2 id="workspace-network-heading">Choose workspace and network access.</h2>
+      <p class="lead">Decide where edits go. Choose outbound destinations separately.</p>
+      <div class="control-toolbar">
+        <div class="workspace-modes" role="group" aria-label="Compare workspace modes"><button type="button" data-workspace-mode="direct" aria-pressed="true">Direct workspace</button><button type="button" data-workspace-mode="clone" aria-pressed="false">Clone mode</button></div>
+        <div class="control-focus" role="group" aria-label="Emphasize an independent resource path"><button type="button" data-control-focus="workspace" aria-pressed="true">File access</button><button type="button" data-control-focus="network" aria-pressed="false">Network access</button></div>
+      </div>
+      <div class="workspace-diagram" data-workspace="direct" data-focus="workspace">
+        <svg class="finish-svg" viewBox="0 0 1432 330" role="img" aria-labelledby="workspace-diagram-title workspace-diagram-desc">
+          <title id="workspace-diagram-title">Workspace sharing and network policy are separate controls</title><desc id="workspace-diagram-desc">Direct sharing sends edits to host project files. Clone mode uses a separate working copy while the host source remains readable, including ignored and untracked files, at /run/sandbox/source. A separate network connection follows network policy.</desc>
+          <defs><marker id="control-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="m0 0 10 5-10 5Z" fill="#2563eb"/></marker></defs>
+          <rect x="0" y="0" width="429" height="330" rx="21" fill="#f7f9fc"/><text x="26" y="35" class="f-cap">Host project</text>
+          <rect class="f-node" x="31" y="88" width="367" height="174" rx="17"/><svg x="54" y="109" width="47" height="47" color="#1d4ed8" aria-hidden="true"><use href="#icon-folder"/></svg><text x="119" y="140" class="f-title">Source files</text><text x="55" y="188" font-size="23">marker.txt</text><text x="55" y="222" font-size="20">Tracked, ignored and untracked</text><text x="31" y="299" class="f-small">Use a harmless, sanitized fixture.</text>
+          <rect x="478" y="0" width="517" height="330" rx="21" fill="#eff6ff" stroke="#dbeafe" stroke-width="2"/><text x="502" y="35" class="f-cap">Sandbox</text>
+          <rect class="f-node workspace-highlight" x="516" y="87" width="439" height="98" rx="15"/><text class="direct-only f-title" x="735" y="126" text-anchor="middle">Shared working tree</text><text class="clone-only f-title" x="735" y="126" text-anchor="middle">Separate working copy</text><text x="735" y="160" text-anchor="middle" class="f-small">Agent edits here</text>
+          <path class="direct-only f-path workspace-highlight" d="M399 136h115" marker-start="url(#control-arrow)" marker-end="url(#control-arrow)"/><text class="direct-only" x="455" y="113" text-anchor="middle" font-size="17">Read/write</text>
+          <path class="clone-only f-path workspace-highlight" d="M399 136h115" marker-end="url(#control-arrow)"/><text class="clone-only" x="455" y="113" text-anchor="middle" font-size="17">Copy</text>
+          <g class="direct-only"><text x="735" y="243" text-anchor="middle" font-size="24" font-weight="600">Edits reach the host project.</text><text x="735" y="277" text-anchor="middle" class="f-small">The chosen files remain shared.</text></g>
+          <g class="clone-only"><rect class="f-node" x="516" y="214" width="439" height="83" rx="14"/><text x="735" y="246" text-anchor="middle" font-size="23" font-weight="650">/run/sandbox/source</text><text x="735" y="277" text-anchor="middle" class="f-small">Read-only source remains readable</text><path class="f-path workspace-highlight" d="M398 230h58v24h58" stroke-dasharray="7 7" marker-end="url(#control-arrow)"/></g>
+          <path class="f-path network-highlight" d="M995 136h43" marker-end="url(#control-arrow)"/>
+          <rect class="f-node network-highlight" x="1041" y="0" width="391" height="330" rx="21"/><text x="1065" y="35" class="f-cap">Independent network policy</text><svg x="1192" y="64" width="70" height="70" color="#1d4ed8" aria-hidden="true"><use href="#icon-network"/></svg><text x="1236" y="178" text-anchor="middle" class="f-title">Chosen destinations</text><text x="1236" y="214" text-anchor="middle" class="f-small">Policy applies to outbound requests.</text><text x="1236" y="267" text-anchor="middle" font-size="20">File sharing does not</text><text x="1236" y="295" text-anchor="middle" font-size="20">select the network policy.</text>
+        </svg>
+      </div>
+      <div class="control-details" aria-live="polite" aria-atomic="true"><article><h3 id="workspace-detail-title">Direct edits reach host files.</h3><p id="workspace-detail-text">The selected project is shared read-write. Agent edits change that host working tree.</p></article><article><h3 id="control-focus-title">File access is the highlighted path.</h3><p id="control-focus-text">Workspace mode selects where edits go. It does not change the independently chosen network policy.</p></article></div>
+      <div class="static-control-modes print-only"><article><h3>Direct workspace</h3><p>The chosen host working tree is shared read-write. Agent edits reach those host files.</p></article><article><h3>Clone mode</h3><p>Edits stay in a separate working copy. The source remains readable at /run/sandbox/source, including ignored and untracked files. Network policy is a separate choice.</p></article></div>
+      <p class="control-fine"><strong>Clone mode limits writes to the source; it does not hide its contents.</strong></p>
+      <p class="print-only print-citation">Sources: Docker workspace isolation — docs.docker.com/ai/sandboxes/security/isolation/#workspace-isolation; local policy — docs.docker.com/ai/sandboxes/governance/access-controls/local/</p>
+    </div>
+    <aside class="notes"><h3>Objective · 42:00–43:00</h3><p>Separate workspace writes from outbound network access. Direct mode shares the chosen host working tree read-write. Clone mode uses a separate working copy; source data remains readable at /run/sandbox/source, including ignored and untracked material. A clone is not a secrecy boundary.</p><p>Interaction: choose direct or clone, then independently emphasize file or network access. Changing workspace mode preserves the current network emphasis; these controls illustrate concepts and do not modify real policy. Every mode has a complete static explanation.</p><p>Use the sanitized Git fixture in demo/03-access-controls/runbook.md. Mountless mode is an optional extension for Q&amp;A; do not add it to the one-minute route. Bridge: compare a prediction with actual terminal evidence.</p><p>Sources: https://docs.docker.com/ai/sandboxes/security/isolation/#workspace-isolation ; https://docs.docker.com/ai/sandboxes/usage/#git-workspace-modes ; https://docs.docker.com/ai/sandboxes/governance/access-controls/local/</p></aside>
+  </section>
+
+  <section id="boundary-checks" data-evidence-case="workspace" aria-labelledby="boundary-checks-heading">
+    <div class="wrap">
+      <p class="eyebrow">Six-minute demonstration · 43:00–49:00</p>
+      <h2 id="boundary-checks-heading">Check the boundary with evidence.</h2>
+      <div class="case-tabs" role="group" aria-label="Select a prepared access-control case"><button type="button" data-evidence-case="workspace" aria-pressed="true">Direct / clone</button><button type="button" data-evidence-case="source" aria-pressed="false">Read-only source</button><button type="button" data-evidence-case="allowed" aria-pressed="false">Allowed destination</button><button type="button" data-evidence-case="denied" aria-pressed="false">Explicitly denied</button></div>
+      <div class="evidence-toolbar"><span class="evidence-context" id="evidence-context">Host shell · alternative prepared environments</span><span class="evidence-copy-status" id="evidence-copy-status" aria-live="polite"></span><button type="button" id="evidence-clear">Clear note</button><button type="button" id="evidence-copy">Copy code</button></div>
+      <div class="evidence-code"><pre id="evidence-code-wrapper"><code id="evidence-active-code" class="language-bash" data-line-numbers="1|2|1-2">sbx run --name odsc-direct codex .
+sbx run --clone --name odsc-clone codex .</code></pre></div>
+      <div class="evidence-panels"><article><h3>Prediction — verify in the prepared terminal</h3><p class="prediction-text" id="evidence-prediction">Direct edits reach the host project. Clone edits stay in the clone until deliberately transferred.</p></article><article><h3>Actual observation</h3><label for="observed-result">Presenter-entered output, exit status and matching rule; no result is prefilled.</label><textarea id="observed-result" placeholder="No observed result recorded." spellcheck="false"></textarea></article></div>
+      <div class="evidence-caption" id="evidence-code-caption" aria-live="polite" aria-atomic="true"><h3>1 · Prepare the direct workspace.</h3><p>These are alternative prepared environments. Start from the sanitized Git fixture in the runbook.</p></div>
+      <div class="static-evidence-cases print-only">
+        <article><h3>Workspace modes · host shell</h3><pre><code class="language-bash">sbx run --name odsc-direct codex .
+sbx run --clone --name odsc-clone codex .</code></pre><p>Prediction: direct edits reach host files; clone edits stay in its working copy. These are two prepared environments, not a mode switch. Verify edits and file locations in the terminal.</p><p data-static-observation="workspace">No observed result recorded.</p></article>
+        <article><h3>Read-only source · host invokes sandbox</h3><pre><code class="language-bash">sbx exec odsc-clone cat /run/sandbox/source/ignored-demo.txt
+sbx exec odsc-clone sh -c \
+  'printf "%s\n" "Source edit" &gt; /run/sandbox/source/marker.txt'</code></pre><p>Prediction: the harmless ignored file is readable; writing the read-only source fails. Verify actual output and exit status. The clone working copy remains separate.</p><p data-static-observation="source">No observed result recorded.</p></article>
+        <article><h3>Allowed destination · host commands</h3><pre><code class="language-bash">sbx policy ls odsc-direct --wide
+sbx policy check network --sandbox odsc-direct example.com:443
+sbx exec odsc-direct curl -I --max-time 10 https://example.com</code></pre><p>Prepare an explicit sandbox-scoped allow using the runbook. Policy check evaluates authorization without sending HTTP. The actual request runs inside the sandbox and can fail for other reasons.</p><p data-static-observation="allowed">No observed result recorded.</p></article>
+        <article><h3>Explicit deny · host commands</h3><pre><code class="language-bash">sbx policy ls odsc-direct --wide
+sbx policy check network --sandbox odsc-direct example.org:443
+sbx exec odsc-direct curl -I --max-time 10 https://example.org</code></pre><p>Prepare an explicit sandbox-scoped deny using the runbook. Correlate the actual request failure with its deny decision and matched rule. Unmatched approval-required access is a different state.</p><p data-static-observation="denied">No observed result recorded.</p></article>
+      </div>
+      <p class="evidence-foot">Preparation and cleanup: <a href="../demo/03-access-controls/runbook.md" target="_blank" rel="noopener">access-control runbook</a>. Keep provider access; remove only new demo rule IDs. Finish by 49:00.</p>
+      <p class="print-only print-citation">Sources: Docker local policy — docs.docker.com/ai/sandboxes/governance/access-controls/local/; Git workspace modes — docs.docker.com/ai/sandboxes/usage/#git-workspace-modes</p>
+    </div>
+    <aside class="notes"><h3>Objective · 43:00–49:00</h3><p>Distinguish documented predictions from observed enforcement. This deck has no prefilled sandbox evidence. Enter actual terminal output, exit status and matched rule only after observing them. Notes stay in memory for each selected case and are cleared on reload; Clear note removes the current case's entry.</p><p>Clock:43–46 compare prepared direct/clone edits and a denied source write;46–48 compare one allowed and one explicitly denied network request;48–49 restore only demo changes and explain stop/remove. Use demo/03-access-controls/runbook.md and its disposable sanitized Git repository. Protect the closing minute and full ten-minute Q&amp;A.</p><p>Interaction: four cases rebuild the single stationary code surface. Forward/back highlights the selected component. Workspace commands are equivalent foreground alternatives for prepared named environments. Source commands are issued from the host and execute inside the clone. Policy inspection/check commands run on the host; curl executes inside the sandbox. Copy returns source, never output, and never executes it.</p><p>Before presenting, inspect existing rules, prepare only the two sandbox-local demo rules, and capture IDs. The runbook uses sbx policy allow network --sandbox odsc-direct example.com:443 and sbx policy deny network --sandbox odsc-direct example.org:443. Keep model-provider access intact and respect organization governance. Remove only newly added rule IDs after the demo; do not reset global policy.</p><p>A policy check is not an HTTP request and cannot prove connectivity. A curl failure alone cannot prove policy denial. Correlate the explicit deny decision, real request, exit status and matched rule/log. Unmatched approval-required destinations are different from this explicit-deny case.</p><p>Fallback: use clearly labeled prediction/explanation if actual enforcement has not been rehearsed. Do not invent success or denial output. Retain one workspace and one network case if time is short. Print includes all cases and any explicitly presenter-entered notes. Bridge: select an environment based on the workload and grants.</p><p>Sources: https://docs.docker.com/ai/sandboxes/governance/access-controls/local/ ; https://docs.docker.com/ai/sandboxes/usage/#git-workspace-modes ; demo/03-access-controls/runbook.md.</p></aside>
+  </section>
+
+  <section id="choose-environment" aria-labelledby="choose-environment-heading">
+    <div class="wrap">
+      <p class="eyebrow">Decision guide · 49:00–49:30</p>
+      <h2 id="choose-environment-heading">Choose for the work and the access.</h2>
+      <p class="lead">Match the execution environment to the workload. Review every shared capability.</p>
+      <div class="choice-layout"><article class="choice-card" data-choice-card="container"><svg aria-hidden="true"><use href="#icon-package"/></svg><h3>Ordinary containers</h3><p>Useful for familiar workloads with deliberate mounts, permissions and capabilities.</p></article><article class="choice-card" data-choice-card="sandbox"><svg aria-hidden="true"><use href="#icon-engine"/></svg><h3>Sandbox microVM</h3><p>Useful when agent tools need their own VM boundary and Docker engine.</p></article></div>
+      <div class="choice-scenarios" role="group" aria-label="Optional environment choice scenarios"><button type="button" data-environment-scenario="workload" aria-pressed="false">Known application workload</button><button type="button" data-environment-scenario="agent" aria-pressed="false">Agent builds and runs tools</button><button type="button" data-environment-scenario="review" aria-pressed="false">Broad credentials or host tools</button></div>
+      <div class="choice-explanation" id="choice-explanation" aria-live="polite" aria-atomic="true"><p>Start with the workload. Then inspect the files, network, credentials and integrations being granted.</p></div>
+      <div class="static-choices print-only"><p><strong>Known application:</strong> an ordinary container can fit when its deliberate mounts and privileges match the task.</p><p><strong>Agent needs its own engine:</strong> a sandbox microVM changes the execution and Docker-engine boundary.</p><p><strong>Broad credentials or host tools:</strong> review access first. A VM cannot choose appropriate grants for us.</p></div>
+      <p class="print-only print-citation">Sources: Docker security — docs.docker.com/engine/security/; Docker isolation layers — docs.docker.com/ai/sandboxes/security/isolation/</p>
+    </div>
+    <aside class="notes"><h3>Objective · 49:00–49:30</h3><p>Apply the distinctions without ranking every option by a safety score. Ordinary containers provide meaningful isolation and suit many workloads. A sandbox microVM changes the execution and Docker-engine boundary for agent tools, while shared resources still require deliberate choices.</p><p>The default comparison is complete. Scenario selection is optional and should not lengthen the timed route. The host-tool/credential case intentionally calls for access review instead of automatically selecting the strongest-sounding environment. Static export includes all three reasons.</p><p>Bridge: close with three takeaways, then begin questions at50:00.</p><p>Sources: https://docs.docker.com/engine/security/ ; https://docs.docker.com/ai/sandboxes/security/isolation/</p></aside>
+  </section>
+
+  <section id="questions" aria-labelledby="questions-heading">
+    <div class="wrap">
+      <p class="eyebrow">Takeaways · 49:30–50:00</p>
+      <h2 id="questions-heading">Autonomy within deliberate boundaries.</h2>
+      <div class="closing-layout">
+        <div class="closing-takeaways"><article class="closing-takeaway"><span class="takeaway-index" aria-hidden="true">1</span><div><h3>Agents execute actions.</h3><p>Tool calls reach files, processes and services.</p></div></article><article class="closing-takeaway"><span class="takeaway-index" aria-hidden="true">2</span><div><h3>Isolation changes their reach.</h3><p>Know which kernel and engine do the work.</p></div></article><article class="closing-takeaway"><span class="takeaway-index" aria-hidden="true">3</span><div><h3>Shared resources still matter.</h3><p>Review files, credentials, network and host tools.</p></div></article></div>
+        <svg class="closing-robot finish-svg" viewBox="0 0 550 480" role="img" aria-labelledby="closing-art-title closing-art-desc"><title id="closing-art-title">The blue robot keeps working inside a deliberate boundary</title><desc id="closing-art-desc">A productive robot uses its own engine inside a microVM with its own kernel. Explicit access paths remain part of the design.</desc><ellipse cx="280" cy="423" rx="220" ry="20" fill="#f1f5f9"/><rect x="29" y="40" width="492" height="370" rx="31" fill="#eff6ff" stroke="#2563eb" stroke-width="3"/><text x="55" y="80" class="f-cap">Useful work inside</text><use href="#robot" x="55" y="115" width="211" height="237"/><rect x="301" y="181" width="183" height="107" rx="16" fill="#fff" stroke="#0f172a" stroke-width="3"/><svg x="366" y="195" width="52" height="52" color="#1d4ed8" aria-hidden="true"><use href="#icon-engine"/></svg><text x="392" y="274" text-anchor="middle" font-size="23" font-weight="650">Own engine</text><path d="M255 265h44" stroke="#10b981" stroke-width="4" stroke-linecap="round"/><path d="m374 143 12 12 24-26" fill="none" stroke="#10b981" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><rect x="55" y="361" width="440" height="28" rx="7" fill="#dbeafe"/><text x="275" y="382" text-anchor="middle" font-size="18" font-weight="650">Own Linux kernel · deliberate sharing</text><text x="275" y="459" text-anchor="middle" font-size="21" fill="#475569">Keep the work useful. Keep the boundary clear.</text></svg>
+      </div>
+      <div class="qa-line"><strong>Questions &amp; answers</strong><span>50:00–60:00 · the final ten minutes</span><a href="../presenter/resources.md" target="_blank" rel="noopener">Workshop resources</a></div>
+      <p class="print-only print-citation">Workshop resources: presenter/resources.md. Sources: docs.docker.com/ai/sandboxes/security/isolation/; docs.docker.com/ai/sandboxes/governance/access-controls/local/</p>
+    </div>
+    <aside class="notes"><h3>Objective · close49:30–50:00; Q&amp;A50:00–60:00</h3><p>Close the story in30seconds: agents execute actions, isolation changes their reach, shared resources still matter. Begin questions at50:00 and preserve all ten final minutes.</p><p>The default final still contains every takeaway and remains visible during Q&amp;A. Use the local workshop resources link for references and runbooks. Revisit prior code views or diagrams only in response to attendee questions; there is no extra scheduled teaching in this slot.</p><p>Fallback: this same static composition is the closing slide and prints completely. No unverified destination or QR code is used.</p><p>Sources: presenter/resources.md ; https://docs.docker.com/ai/sandboxes/security/isolation/ ; https://docs.docker.com/ai/sandboxes/governance/access-controls/local/</p></aside>
+  </section>
+
+</main>
+</div>
+<script src="vendor/reveal/dist/reveal.js"></script>
+<script src="vendor/reveal/plugin/notes/notes.js"></script>
+<script src="vendor/reveal/plugin/highlight/highlight.js"></script>
+<script src="scripts/animations.js"></script>
+<script src="scripts/isolation.js"></script>
+<script src="scripts/sandbox.js"></script>
+<script type="application/json" id="finishing-source-data">{"CSV": "date,region,product,revenue\n2026-01-01,West,Notebook,1200\n2026-01-01,East,Notebook,900", "PYTHON": "df = pd.read_csv(DATA, parse_dates=[\"date\"])\nregions = st.multiselect(\"Region\", df.region.unique(), df.region.unique())\nproduct_choices = df[\"product\"].unique()\nproducts = st.multiselect(\"Product\", product_choices, product_choices)\nfiltered = df[df.region.isin(regions) & df[\"product\"].isin(products)]\nst.metric(\"Total revenue\", f\"${filtered.revenue.sum():,.0f}\")", "DOCKER": "FROM python:3.12-slim\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY app.py .\nCOPY data/ data/\nEXPOSE 8501\nCMD [\"streamlit\", \"run\", \"app.py\", \"--server.address=0.0.0.0\", \"--server.port=8501\"]", "BUILD": "docker build -t odsc-sales:workshop .\ndocker run -d --name odsc-sales -p 8501:8501 odsc-sales:workshop", "PUBLISH": "sbx ports odsc-demo --publish 8501\nsbx ports odsc-demo"}</script>
+<script src="scripts/finishing.js"></script>
+<script src="scripts/presentation.js"></script>
+</body>
+</html>
