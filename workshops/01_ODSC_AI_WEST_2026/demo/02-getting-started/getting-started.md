@@ -11,7 +11,35 @@ sbx version
 sbx login
 sbx daemon start --detach
 sbx diagnose
+```
+
+## Add and manage secrets
+
+Authenticate Codex with OpenAI on the host, then confirm that the credential
+was saved:
+
+```bash
 sbx secret set openai --oauth
+sbx secret ls
+```
+
+The OAuth credential is stored in the host credential store at global scope:
+
+- **macOS:** System Keychain
+- **Windows:** Windows Credential Manager
+- **Linux:** The desktop Secret Service, such as GNOME Keyring or KDE Wallet
+- **Headless Linux without a keyring:** A permission-protected file under
+  `$XDG_CONFIG_HOME/com.docker.sandboxes`, or
+  `~/.config/com.docker.sandboxes` when `XDG_CONFIG_HOME` is not set
+
+The sandbox uses the credential through the host-side proxy and cannot read
+the underlying token. Run the `set` command again to replace or refresh the
+saved credential.
+
+To remove the credential after the workshop:
+
+```bash
+sbx secret rm openai
 ```
 
 ## Create with resources and workspace permissions
@@ -19,18 +47,20 @@ sbx secret set openai --oauth
 Check that `odsc-basics` is unused before creating it:
 
 ```bash
-mkdir -p demo-workspace
+ls folder_1_read_write/editable-notes.md
+ls folder_2_read_only/protected-policy.md
 sbx ls
 sbx run --detach \
   --name odsc-basics --cpus 2 --memory 4g \
   codex \
-  ./demo-workspace \
-  ./reference:ro
+  ./folder_1_read_write \
+  ./folder_2_read_only:ro
 ```
 
 The sandbox VM receives two CPUs and 4 GiB of memory. The primary workspace
-is read-write; the reference folder is read-only. These are creation settings.
-Use `shell` instead of `codex` for a model-free version of the demo.
+(`folder_1_read_write`) is read-write; `folder_2_read_only` is mounted
+read-only. These are creation settings. Use `shell` instead of `codex` for a
+model-free version of the demo.
 
 ## Inspect and connect
 
@@ -50,17 +80,45 @@ sbx exec -it odsc-basics bash
 
 Run `exit` inside that shell to return to the host.
 
+## Connect over SSH and test file access
+
+Configure local sandbox SSH access once, then connect using the sandbox name:
+
+```bash
+sbx setup ssh
+ssh odsc-basics.sbx
+```
+
+Run the following commands inside the SSH session:
+
+```bash
+pwd
+printf '\nSentence added over SSH.\n' >> editable-notes.md
+cat editable-notes.md
+printf '\nSentence added over SSH.\n' >> ../folder_2_read_only/protected-policy.md
+cat ../folder_2_read_only/protected-policy.md
+exit
+```
+
+The first append succeeds because `editable-notes.md` is in the read-write
+workspace. The second append should fail with a read-only-filesystem or
+permission error. The final `cat` confirms that the protected file is still
+readable and unchanged.
+
 ## Verify workspace access
 
 ```bash
-sbx exec odsc-basics sh -c 'printf "%s\n" "Written inside the sandbox" > workspace-proof.txt'
-cat demo-workspace/workspace-proof.txt
-sbx exec odsc-basics cat ../reference/notes.txt
-sbx exec odsc-basics sh -c 'printf "%s\n" "Attempted write" > ../reference/attempted-write.txt'
+sbx exec odsc-basics cat editable-notes.md
+sbx exec odsc-basics sh -c 'printf "\nStatus: edited inside the sandbox\n" >> editable-notes.md'
+cat folder_1_read_write/editable-notes.md
+sbx exec odsc-basics cat ../folder_2_read_only/protected-policy.md
+sbx exec odsc-basics sh -c 'printf "\nAttempted change\n" >> ../folder_2_read_only/protected-policy.md'
 ```
 
-The final command is an intentional failure: inspect the actual error for a
-read-only mount or denied write. Read-only data remains readable.
+The writable file changes on both the sandbox and host because it is in the
+shared read-write workspace. The final command is an intentional failure:
+inspect the actual error for a read-only mount or denied write. Read-only data
+remains readable.
 
 ## Configure and check network permissions
 
@@ -87,7 +145,7 @@ these two rules do not restrict all traffic to one allowed destination.
 sbx stop odsc-basics
 sbx ls
 sbx run --detach --name odsc-basics
-sbx exec odsc-basics cat workspace-proof.txt
+sbx exec odsc-basics cat editable-notes.md
 ```
 
 Remove each newly added rule by replacing `NEW_RULE_ID` with its actual ID:

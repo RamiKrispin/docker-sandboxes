@@ -50,8 +50,8 @@ From the repository root:
 
 ```bash
 cd workshops/01_ODSC_AI_WEST_2026/demo/02-getting-started
-mkdir -p demo-workspace
-ls reference/notes.txt
+ls folder_1_read_write/editable-notes.md
+ls folder_2_read_only/protected-policy.md
 sbx ls
 ```
 
@@ -64,8 +64,8 @@ The two folders have different roles:
 
 | Folder | Access inside the sandbox | Purpose |
 | --- | --- | --- |
-| `demo-workspace/` | Read-write | Disposable files created during the demo |
-| `reference/` | Read-only | A harmless note we can read but cannot edit |
+| `folder_1_read_write/` | Read-write | Contains a project note we can edit from the sandbox |
+| `folder_2_read_only/` | Read-only | Contains a protected policy we can read but cannot edit |
 
 ## 3. Create a named sandbox with explicit resources
 
@@ -75,8 +75,8 @@ For a new name, run:
 sbx run --detach \
   --name odsc-basics --cpus 2 --memory 4g \
   codex \
-  ./demo-workspace \
-  ./reference:ro
+  ./folder_1_read_write \
+  ./folder_2_read_only:ro
 ```
 
 | Argument | Meaning |
@@ -86,8 +86,8 @@ sbx run --detach \
 | `--cpus 2` | Allocate two virtual CPUs to the sandbox VM |
 | `--memory 4g` | Set the sandbox VM memory allocation to 4 GiB |
 | `codex` | Select the coding agent |
-| `./demo-workspace` | Share this host folder read-write as the primary workspace |
-| `./reference:ro` | Share the additional host folder read-only |
+| `./folder_1_read_write` | Share this host folder read-write as the primary workspace |
+| `./folder_2_read_only:ro` | Share the additional host folder read-only |
 
 The CPU and memory settings apply to the sandbox VM, which contains the agent,
 tools, and its Docker Engine. Containers created inside it share that VM's
@@ -108,10 +108,10 @@ sbx exec odsc-basics nproc
 sbx exec odsc-basics head -n 3 /proc/meminfo
 ```
 
-The workspace path should end in `demo-workspace`. `nproc` reports the CPUs
-available to the process; `/proc/meminfo` reports Linux guest memory. Usable
-guest memory can be lower than the requested allocation because the VM and
-kernel consume some memory. We inspect the observed values rather than
+The workspace path should end in `folder_1_read_write`. `nproc` reports the
+CPUs available to the process; `/proc/meminfo` reports Linux guest memory.
+Usable guest memory can be lower than the requested allocation because the VM
+and kernel consume some memory. We inspect the observed values rather than
 expecting an exact `4g` string.
 
 `sbx exec` runs a command inside the sandbox and returns to the host terminal.
@@ -129,8 +129,10 @@ sbx run --name odsc-basics
 For Codex, submit this small task:
 
 ```text
-Read ../reference/notes.txt. Create hello.txt in the current workspace with
-the text "Hello from the sandbox". Do not install packages or change other files.
+Read ../folder_2_read_only/protected-policy.md. Then update editable-notes.md
+in the current workspace: change the status to "edited by Codex" and add one
+sentence describing the access test. Do not install packages or change other
+files.
 ```
 
 The prompt describes the task. Mounts and policy enforce access; instructions
@@ -148,12 +150,41 @@ Inside the sandbox shell:
 ```bash
 pwd
 ls
-cat ../reference/notes.txt
+cat editable-notes.md
+cat ../folder_2_read_only/protected-policy.md
 exit
 ```
 
 `exit` closes this shell and returns to the host. Because the sandbox was
 started with `--detach`, it remains running after attached sessions end.
+
+### Connect over SSH
+
+Docker Sandboxes can also expose a local SSH hostname for the sandbox. Run the
+setup command once on the host, then connect using the sandbox name with the
+`.sbx` suffix:
+
+```bash
+sbx setup ssh
+ssh odsc-basics.sbx
+```
+
+An interactive SSH shell starts in the primary workspace. Inside that session,
+append the same sentence to each fixture:
+
+```bash
+pwd
+printf '\nSentence added over SSH.\n' >> editable-notes.md
+cat editable-notes.md
+printf '\nSentence added over SSH.\n' >> ../folder_2_read_only/protected-policy.md
+cat ../folder_2_read_only/protected-policy.md
+exit
+```
+
+The append to `editable-notes.md` succeeds and is immediately visible on the
+host. The append to `protected-policy.md` should fail because its folder was
+mounted with `:ro`. The subsequent `cat` still succeeds, demonstrating that
+read-only access permits reading while blocking changes.
 
 ## 6. Verify read-write and read-only access
 
@@ -161,18 +192,19 @@ Run from a host terminal in the demo directory. This deterministic write works
 even if we skipped the Codex task:
 
 ```bash
-sbx exec odsc-basics sh -c 'printf "%s\n" "Written inside the sandbox" > workspace-proof.txt'
-cat demo-workspace/workspace-proof.txt
-sbx exec odsc-basics cat ../reference/notes.txt
+sbx exec odsc-basics cat editable-notes.md
+sbx exec odsc-basics sh -c 'printf "\nStatus: edited inside the sandbox\n" >> editable-notes.md'
+cat folder_1_read_write/editable-notes.md
+sbx exec odsc-basics cat ../folder_2_read_only/protected-policy.md
 ```
 
-The host should display `Written inside the sandbox`: the primary workspace is
-the same writable host folder. The reference note should also be readable.
+The host should display the newly appended status because the primary workspace
+is the same writable host folder. The protected policy should also be readable.
 
-Now attempt to create a file in the read-only reference folder:
+Now attempt to edit the existing file in the read-only folder:
 
 ```bash
-if sbx exec odsc-basics sh -c 'printf "%s\n" "Attempted write" > ../reference/attempted-write.txt'; then
+if sbx exec odsc-basics sh -c 'printf "\nAttempted change\n" >> ../folder_2_read_only/protected-policy.md'; then
   printf '%s\n' 'Unexpected write success: stop and inspect the workspace configuration.'
 else
   printf '%s\n' 'Write failed; compare the error with the read-only mount configuration.'
@@ -240,7 +272,7 @@ request. No exact terminal output is bundled as evidence of a completed run.
 sbx stop odsc-basics
 sbx ls
 sbx run --detach --name odsc-basics
-sbx exec odsc-basics cat workspace-proof.txt
+sbx exec odsc-basics cat editable-notes.md
 ```
 
 Stop preserves the sandbox's private state. Restart uses its saved agent,
@@ -266,8 +298,8 @@ sbx rm odsc-basics
 ```
 
 Removal deletes the sandbox's private filesystem, images, and containers. The
-shared `demo-workspace/` folder remains on the host. We can keep it as evidence
-or remove only the disposable files created for this exercise.
+shared `folder_1_read_write/` folder remains on the host. Restore its fixture
+file before repeating the demo if the earlier edit should not carry over.
 
 ## Next: build something useful
 
