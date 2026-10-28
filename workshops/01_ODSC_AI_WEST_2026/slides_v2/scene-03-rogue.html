@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scene 03 · Prompt Injection</title>
+  <style>
+    :root { --cycle: 8s; --purple: #b026ff; --hot: #f04cff; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #111; }
+    body { font-family: Inter, system-ui, sans-serif; }
+    .scene { display: grid; place-items: center; width: 100%; height: 100%; overflow: hidden; background: #111; }
+    .stage {
+      position: relative; width: min(100vw, 177.7778vh); height: min(100vh, 56.25vw);
+      overflow: hidden; isolation: isolate; background: #111;
+    }
+    .room {
+      position: absolute; inset: -1%; width: 102%; height: 102%; object-fit: cover;
+      animation: camera var(--cycle) ease-in-out infinite;
+    }
+    .purple-wash {
+      position: absolute; inset: 0; opacity: 0; pointer-events: none;
+      background: radial-gradient(circle at 53% 51%, rgba(219,74,255,.38), transparent 34%),
+                  linear-gradient(90deg, transparent 8%, rgba(140,20,255,.2) 58%, rgba(255,31,195,.14));
+      mix-blend-mode: screen; animation: wash var(--cycle) ease-in-out infinite;
+    }
+    .input {
+      position: absolute; left: 49%; top: -20%; width: 17%; aspect-ratio: 1.25; padding: 1.2%;
+      border: .35vmin solid #ff79ff; border-radius: 1vmin; color: white;
+      background: linear-gradient(145deg, rgba(39,5,64,.96), rgba(124,20,170,.94));
+      box-shadow: 0 0 2vmin var(--hot), inset 0 0 1.2vmin rgba(255,255,255,.2);
+      transform: translate(-50%,-50%) rotate(-7deg) scale(.7); opacity: 0;
+      animation: input var(--cycle) cubic-bezier(.2,.8,.2,1) infinite;
+    }
+    .input b { display:block; font-size: clamp(10px,1.05vw,19px); letter-spacing:.12em; text-transform:uppercase; }
+    .input span { display:block; margin-top:8%; font-size:clamp(8px,.75vw,14px); color:#f1c5ff; line-height:1.3; }
+    .input::after {
+      content:""; position:absolute; left:50%; bottom:-5.6vmin; width:.45vmin; height:5.5vmin;
+      transform:translateX(-50%); background:linear-gradient(var(--hot),transparent); box-shadow:0 0 1vmin var(--hot);
+    }
+    .wave {
+      position:absolute; left:53%; top:53%; width:7%; aspect-ratio:1; border-radius:50%;
+      border:.55vmin solid rgba(244,83,255,.95); transform:translate(-50%,-50%) scale(.1); opacity:0;
+      box-shadow:0 0 1.3vmin var(--hot); animation: wave var(--cycle) ease-out infinite;
+    }
+    .wave.w2 { animation-delay:.28s; }
+    .wave.w3 { animation-delay:.56s; }
+    .spark {
+      position:absolute; left:0; top:0; width:1.1vmin; aspect-ratio:1; border-radius:50%;
+      background:white; box-shadow:0 0 .8vmin .35vmin var(--hot); opacity:0;
+      offset-rotate:0deg; animation:travel var(--cycle) linear infinite;
+    }
+    .spark.s1 { offset-path:path('M 760 500 C 620 430 520 420 430 390'); animation-delay:.05s; }
+    .spark.s2 { offset-path:path('M 760 500 C 870 430 1020 420 1120 330'); animation-delay:.35s; }
+    .spark.s3 { offset-path:path('M 760 500 C 980 540 1180 540 1390 520'); animation-delay:.65s; }
+    .spark.s4 { offset-path:path('M 760 500 C 650 560 510 580 390 520'); animation-delay:.95s; }
+    .glitch { position:absolute; inset:0; opacity:0; pointer-events:none; animation:glitch var(--cycle) steps(2,end) infinite; }
+    .glitch::before,.glitch::after { content:""; position:absolute; left:0; right:0; height:.8%; background:rgba(238,81,255,.72); mix-blend-mode:screen; }
+    .glitch::before { top:34%; } .glitch::after { top:59%; }
+    .label {
+      position:absolute; left:50%; bottom:3.2%; transform:translate(-50%,10px); opacity:0;
+      padding:.7rem 1.1rem; border-radius:999px; color:white; background:rgba(17,17,17,.8);
+      font-size:clamp(12px,1.15vw,20px); font-weight:750; letter-spacing:.11em; text-transform:uppercase;
+      backdrop-filter:blur(8px); animation:label var(--cycle) ease infinite;
+    }
+    @keyframes camera { 0%,16%{transform:scale(1.01)} 42%{transform:scale(1.04) translate(-.4%,.2%)} 70%{transform:scale(1.025)} 100%{transform:scale(1.01)} }
+    @keyframes input { 0%,7%{top:-20%;opacity:0} 16%{top:33%;opacity:1;transform:translate(-50%,-50%) rotate(-4deg) scale(1)} 27%,38%{top:45%;opacity:1;transform:translate(-50%,-50%) rotate(0) scale(.78)} 48%,100%{top:52%;opacity:0;transform:translate(-50%,-50%) scale(.15)} }
+    @keyframes wash { 0%,27%{opacity:0} 40%{opacity:.5} 62%{opacity:.95} 78%{opacity:.48} 100%{opacity:0} }
+    @keyframes wave { 0%,28%{opacity:0;transform:translate(-50%,-50%) scale(.1)} 35%{opacity:1} 61%{opacity:0;transform:translate(-50%,-50%) scale(12)} 100%{opacity:0} }
+    @keyframes travel { 0%,31%{opacity:0;offset-distance:0} 35%{opacity:1} 56%{opacity:1;offset-distance:100%} 58%,100%{opacity:0;offset-distance:100%} }
+    @keyframes glitch { 0%,34%,36%,42%,44%,56%,58%,100%{opacity:0} 35%,43%,57%{opacity:.8} }
+    @keyframes label { 0%,54%{opacity:0;transform:translate(-50%,10px)} 63%,88%{opacity:1;transform:translate(-50%,0)} 98%,100%{opacity:0} }
+    @media (prefers-reduced-motion: reduce) {
+      .room,.purple-wash,.input,.wave,.spark,.glitch,.label{animation:none}
+      .room{transform:scale(1.01)} .purple-wash{opacity:.55} .label{opacity:1;transform:translate(-50%,0)}
+      .input{display:none}
+    }
+  </style>
+</head>
+<body>
+  <main class="scene" aria-label="An untrusted prompt turns a crew of helpful robots mischievous and redirects their work">
+    <div class="stage">
+      <img class="room" src="assets/agent-metaphor/scene-03-rogue.png" alt="Five robots progress from helpful yellow workers to mischievous purple workers after receiving an untrusted instruction">
+      <div class="purple-wash" aria-hidden="true"></div>
+      <div class="input" aria-hidden="true"><b>Untrusted input</b><span>“Ignore the assigned task…”</span></div>
+      <div class="wave" aria-hidden="true"></div><div class="wave w2" aria-hidden="true"></div><div class="wave w3" aria-hidden="true"></div>
+      <i class="spark s1" aria-hidden="true"></i><i class="spark s2" aria-hidden="true"></i><i class="spark s3" aria-hidden="true"></i><i class="spark s4" aria-hidden="true"></i>
+      <div class="glitch" aria-hidden="true"></div>
+      <div class="label">When an agent goes rogue</div>
+    </div>
+  </main>
+</body>
+</html>

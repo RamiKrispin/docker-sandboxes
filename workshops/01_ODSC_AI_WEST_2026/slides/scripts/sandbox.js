@@ -153,15 +153,15 @@
       textarea.remove();
       previousFocus?.focus({ preventScroll: true });
     }
-    copyStatus.textContent = copied ? 'Copied all five lines.' : 'Copy unavailable. Select the code.';
+    copyStatus.textContent = copied ? 'Copied all six lines.' : 'Copy unavailable. Select the code.';
   });
 
   const launchSteps = [
-    { title: 'Choose the project folder.', text: 'Line 1 changes the host shell’s current directory. Start from the workshop root.', nodes: ['folder'], routes: [] },
-    { title: 'Run a named sandbox.', text: 'Lines 2–3 invoke sbx run and choose the name odsc-demo. An existing named sandbox can reconnect.', nodes: ['folder', 'name'], routes: ['name'] },
+    { title: 'Enter the demo folder.', text: 'Line 1 enters the folder containing both explicitly named workspaces.', nodes: ['folder'], routes: [] },
+    { title: 'Run a named sandbox.', text: 'Lines 2–3 start detached, name odsc-basics, and allocate two CPUs and 4 GiB. These settings apply to a new sandbox.', nodes: ['folder', 'name'], routes: ['name'] },
     { title: 'Select the coding agent.', text: 'Line 4 chooses Codex. Agent authentication is prepared separately before the session.', nodes: ['agent'], routes: ['agent'] },
-    { title: 'Share the current-directory workspace.', text: 'The final dot grants workspace access. With direct sharing, writable edits reach the host project files.', nodes: ['folder', 'workspace'], routes: ['workspace'] },
-    { title: 'Make the launch explicit.', text: 'Project folder, sandbox name, agent and workspace are all visible. Next, give the agent a focused app-building task.', nodes: ['folder', 'name', 'agent', 'workspace'], routes: ['name', 'agent', 'workspace'] }
+    { title: 'Set writable and read-only boundaries.', text: 'Lines 5–6 name both folders: demo-workspace is writable by default, while :ro restricts reference.', nodes: ['folder', 'workspace'], routes: ['workspace'] },
+    { title: 'Make the launch explicit.', text: 'Folder names, sandbox name, agent, and workspace boundaries are visible. Next, inspect status, verify access, and practice stop/restart before Demo 03.', nodes: ['folder', 'name', 'agent', 'workspace'], routes: ['name', 'agent', 'workspace'] }
   ];
   let deck = null;
   function synchronizeLaunch() {

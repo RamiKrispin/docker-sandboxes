@@ -1,0 +1,3 @@
+Workshop reference: this folder is shared read-only.
+The primary demo-workspace folder is shared read-write.
+Read-only files remain readable.

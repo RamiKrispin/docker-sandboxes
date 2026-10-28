@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scene 02 · Agent Mishap</title>
+  <style>
+    :root { --cycle: 7s; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #111; }
+    body { font-family: Inter, system-ui, sans-serif; }
+    .scene { display: grid; place-items: center; width: 100%; height: 100%; overflow: hidden; background: #111; }
+    .stage {
+      position: relative; width: min(100vw, 177.7778vh); height: min(100vh, 56.25vw);
+      overflow: hidden; isolation: isolate; background: #111;
+    }
+    .room {
+      position: absolute; inset: -2%; width: 104%; height: 104%; object-fit: cover;
+      animation: camera var(--cycle) cubic-bezier(.2,.8,.2,1) infinite;
+    }
+    .flash {
+      position: absolute; inset: 0; background: #fff; opacity: 0; mix-blend-mode: screen;
+      animation: flash var(--cycle) linear infinite; pointer-events: none;
+    }
+    .glow {
+      position: absolute; left: 52%; top: 55%; width: 14vmin; aspect-ratio: 1; border-radius: 50%;
+      transform: translate(-50%,-50%) scale(.05);
+      background: radial-gradient(circle, #fff 0 12%, #ffe44d 20%, #ff8a00 44%, transparent 72%);
+      opacity: 0; filter: blur(2px); mix-blend-mode: screen;
+      animation: glow var(--cycle) ease-out infinite;
+    }
+    .ring {
+      position: absolute; left: 52%; top: 55%; width: 10vmin; aspect-ratio: 1; border-radius: 50%;
+      border: 1.2vmin solid rgba(255,225,90,.9); transform: translate(-50%,-50%) scale(.1); opacity: 0;
+      animation: ring var(--cycle) ease-out infinite;
+    }
+    .smoke { position: absolute; left: 52%; top: 52%; width: 22vmin; aspect-ratio: 1; transform: translate(-50%,-50%); }
+    .smoke i {
+      position: absolute; width: 7vmin; aspect-ratio: 1; border-radius: 50%; opacity: 0;
+      background: radial-gradient(circle at 35% 32%, #fff 0 15%, #d5d1cb 48%, #777 100%);
+      filter: blur(2px); animation: puff var(--cycle) ease-out infinite;
+    }
+    .smoke i:nth-child(1) { --x:-7vmin; --y:-10vmin; animation-delay: .04s; }
+    .smoke i:nth-child(2) { --x: 1vmin; --y:-14vmin; animation-delay: .12s; }
+    .smoke i:nth-child(3) { --x: 8vmin; --y:-8vmin;  animation-delay: .18s; }
+    .smoke i:nth-child(4) { --x:-11vmin;--y:-2vmin;  animation-delay: .22s; }
+    .smoke i:nth-child(5) { --x: 7vmin; --y: 0vmin;  animation-delay: .28s; }
+    .smoke i:nth-child(6) { --x:-2vmin; --y:-5vmin;  animation-delay: .34s; }
+    .part {
+      position: absolute; left: 52%; top: 56%; width: 1.2vmin; height: 3.8vmin; border-radius: .3vmin;
+      background: #222; opacity: 0; transform-origin: 50% 140%;
+      animation: debris var(--cycle) cubic-bezier(.1,.65,.3,1) infinite;
+    }
+    .part:nth-of-type(1) { --tx:-28vmin; --ty:-24vmin; --rot:520deg; }
+    .part:nth-of-type(2) { --tx: 30vmin; --ty:-18vmin; --rot:-610deg; background:#e0230f; }
+    .part:nth-of-type(3) { --tx:-18vmin; --ty: 18vmin; --rot:460deg; background:#ccc; }
+    .part:nth-of-type(4) { --tx: 22vmin; --ty: 16vmin; --rot:-390deg; }
+    .part:nth-of-type(5) { --tx:  5vmin; --ty:-28vmin; --rot:700deg; background:#2d6cdf; }
+    .label {
+      position: absolute; left: 50%; bottom: 3.2%; transform: translateX(-50%);
+      padding: .7rem 1.1rem; border-radius: 999px; color: #fff; background: rgba(17,17,17,.76);
+      font-size: clamp(13px,1.2vw,20px); font-weight: 750; letter-spacing: .13em; text-transform: uppercase;
+      opacity: 0; animation: label var(--cycle) ease infinite; backdrop-filter: blur(8px);
+    }
+    @keyframes camera {
+      0%,17% { transform: scale(1.02) translate(0,0); }
+      19% { transform: scale(1.045) translate(-1.1%,.5%); }
+      20% { transform: scale(1.05) translate(1.2%,-.6%) rotate(.25deg); }
+      21% { transform: scale(1.05) translate(-.9%,.7%) rotate(-.2deg); }
+      22% { transform: scale(1.045) translate(.6%,-.4%); }
+      25%,100% { transform: scale(1.02) translate(0,0); }
+    }
+    @keyframes flash { 0%,18.5%,23%,100%{opacity:0} 19%{opacity:.9} 20%{opacity:.18} 21%{opacity:.55} }
+    @keyframes glow { 0%,17%{opacity:0;transform:translate(-50%,-50%) scale(.05)} 19%{opacity:1;transform:translate(-50%,-50%) scale(1)} 24%{opacity:.15;transform:translate(-50%,-50%) scale(2.4)} 30%,100%{opacity:0;transform:translate(-50%,-50%) scale(3)} }
+    @keyframes ring { 0%,18%{opacity:0;transform:translate(-50%,-50%) scale(.1)} 19%{opacity:.95} 26%{opacity:0;transform:translate(-50%,-50%) scale(7)} 100%{opacity:0} }
+    @keyframes puff { 0%,18%{opacity:0;transform:translate(0,0) scale(.2)} 22%{opacity:.9} 54%{opacity:.78;transform:translate(var(--x),var(--y)) scale(2.1)} 78%,100%{opacity:0;transform:translate(calc(var(--x)*1.25),calc(var(--y)*1.45)) scale(2.8)} }
+    @keyframes debris { 0%,18%{opacity:0;transform:translate(-50%,-50%) rotate(0)} 20%{opacity:1} 47%{opacity:.9;transform:translate(var(--tx),var(--ty)) rotate(var(--rot))} 59%,100%{opacity:0;transform:translate(var(--tx),calc(var(--ty) + 18vmin)) rotate(var(--rot))} }
+    @keyframes label { 0%,32%{opacity:0;transform:translate(-50%,10px)} 42%,82%{opacity:1;transform:translate(-50%,0)} 94%,100%{opacity:0} }
+    @media (prefers-reduced-motion: reduce) {
+      .room,.flash,.glow,.ring,.smoke i,.part,.label { animation: none; }
+      .room { transform: scale(1.02); }
+      .label { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <main class="scene" aria-label="A crew of yellow robot agents creates a harmless mess during a science experiment">
+    <div class="stage">
+      <img class="room" src="assets/agent-metaphor/scene-02-chaos.png" alt="Five yellow robot workers react to a harmless smoky workshop mishap">
+      <div class="glow" aria-hidden="true"></div>
+      <div class="ring" aria-hidden="true"></div>
+      <div class="flash" aria-hidden="true"></div>
+      <div class="smoke" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <b class="part" aria-hidden="true"></b><b class="part" aria-hidden="true"></b><b class="part" aria-hidden="true"></b><b class="part" aria-hidden="true"></b><b class="part" aria-hidden="true"></b>
+      <div class="label">Useful agents can still make mistakes</div>
+    </div>
+  </main>
+</body>
+</html>

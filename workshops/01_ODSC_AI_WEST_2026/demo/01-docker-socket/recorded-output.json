@@ -1,11 +1,24 @@
 {
-  "capturedAtUTC": "2026-10-16T04:16:03.565518+00:00",
+  "capturedAtUTC": "2026-10-28T13:49:42Z",
   "platform": "Docker Desktop on macOS",
   "context": "desktop-linux",
-  "command": "docker run --rm \\\n  -v /var/run/docker.sock:/var/run/docker.sock \\\n  docker:cli \\\n  docker run --rm \\\n    -v \"$DEMO_DIR:/host-data:ro\" \\\n    alpine cat /host-data/proof.txt",
-  "stdout": "Hello from a deliberately created host test file!\n",
-  "stderr": "",
-  "exitCode": 0,
-  "durationMs": 478,
-  "fixtureSha256": "685eda3305867174670e5d5cf0e6491dee77e08eff8e94764ccfe1de1de5252b"
+  "steps": [
+    {
+      "name": "without-socket",
+      "command": "docker run --rm docker:cli cat /host-data/my-secrets.txt",
+      "stdout": "",
+      "stderr": "cat: can't open '/host-data/my-secrets.txt': No such file or directory\n",
+      "exitCode": 1,
+      "durationMs": 241
+    },
+    {
+      "name": "with-socket",
+      "command": "docker run --rm \\\n  -v /var/run/docker.sock:/var/run/docker.sock \\\n  docker:cli \\\n  docker run --rm \\\n    -v \"$DEMO_DIR:/host-data:ro\" \\\n    alpine cat /host-data/my-secrets.txt",
+      "stdout": "# DEMO VALUES ONLY — NOT REAL CREDENTIALS\nLLM_API_KEY=demo_llm_7H3K9P2M6R4X\nVECTOR_DB_API_KEY=demo_vec_8N5Q1T7V3C9L\nOBSERVABILITY_API_KEY=demo_obs_4W8D2J6S0F5A\n",
+      "stderr": "",
+      "exitCode": 0,
+      "durationMs": 387
+    }
+  ],
+  "fixtureSha256": "39d13221149a067321554ff7b6aab5cef85a718269d22550773c00895aa000ac"
 }

@@ -1,0 +1,15 @@
+{
+  "name": "odsc-ai-west-2026-docker-sandboxes",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Interactive HTML slides for the Running AI Agents Safely with Docker Sandboxes workshop",
+  "type": "module",
+  "scripts": {
+    "build": "node tools/prepare-assets.mjs",
+    "start": "node tools/serve.mjs"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "5.3.0",
+    "reveal.js": "6.0.2"
+  }
+}
