@@ -29,4 +29,10 @@ series is published.
 
 | Tutorial | Article | Code |
 | --- | --- | --- |
-| **What is Docker Sandboxes?** | Coming soon | — |
+| **What is Docker Sandboxes?** | [Read the tutorial](https://theaiops.substack.com/p/what-is-docker-sandboxes) | — |
+
+## Workshops
+
+| Workshop | Materials |
+| --- | --- |
+| **Running AI Agents Safely with Docker Sandboxes — ODSC AI West 2026** | [Workshop materials](https://github.com/RamiKrispin/docker-sandboxes/tree/main/workshops/01_ODSC_AI_WEST_2026) |
